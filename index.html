@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cave">
+<title>Cave — Wine Journal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070204;
+  --surface:#120609;
+  --surface2:#1C0C10;
+  --gold:#C5A048;
+  --gold-dim:rgba(197,160,72,0.5);
+  --gold-faint:rgba(197,160,72,0.12);
+  --wine:#7B1525;
+  --wine2:#9E1E30;
+  --cream:#EFE4D2;
+  --cream2:rgba(239,228,210,0.5);
+  --cream3:rgba(239,228,210,0.18);
+  --border:rgba(197,160,72,0.15);
+  --border2:rgba(197,160,72,0.4);
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+  --r:12px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{
+  color:var(--cream);
+  font-family:Georgia,'Book Antiqua',Palatino,'Palatino Linotype',serif;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+/* grain texture */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── App shell ─── */
+#app{
+  height:100%;display:flex;flex-direction:column;
+  max-width:480px;margin:0 auto;position:relative;overflow:hidden;
+}
+
+/* ─── Header ─── */
+.hdr{
+  flex-shrink:0;
+  padding:calc(var(--st) + 20px) 22px 0;
+  position:relative;z-index:10;
+}
+.brand{display:flex;align-items:baseline;gap:12px;margin-bottom:5px}
+.brand-name{
+  font-size:26px;letter-spacing:.28em;color:var(--gold);
+  font-weight:400;text-transform:uppercase;
+}
+.brand-sub{
+  font-size:10px;letter-spacing:.2em;color:var(--cream2);
+  text-transform:uppercase;font-family:system-ui,-apple-system,sans-serif;font-weight:300;
+}
+.hdr-rule{
+  height:1px;margin:10px 0 14px;
+  background:linear-gradient(to right,var(--gold-dim),rgba(197,160,72,.06),transparent);
+}
+.search-wrap{position:relative;margin-bottom:4px}
+.search-wrap svg{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  pointer-events:none;opacity:.45;
+}
+.search-input{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;color:var(--cream);font-size:14px;
+  font-family:system-ui,-apple-system,sans-serif;font-weight:300;
+  padding:10px 14px 10px 38px;outline:none;
+  transition:border-color .25s var(--ease),background .25s;
+  -webkit-appearance:none;
+}
+.search-input::placeholder{color:var(--cream3)}
+.search-input:focus{border-color:var(--border2);background:var(--surface2)}
+
+/* ─── Count bar ─── */
+.count-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 22px 8px;flex-shrink:0;
+}
+.count-label{
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--cream2);font-family:system-ui,-apple-system,sans-serif;
+}
+
+/* ─── Scroll list ─── */
+.scroll-area{
+  flex:1;overflow-y:auto;padding:0 22px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.scroll-area::-webkit-scrollbar{display:none}
+.scroll-spacer{height:calc(var(--sb) + 88px)}
+
+/* ─── Cards ─── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 18px;margin-bottom:11px;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .15s;
+  animation:cardIn .38s var(--ease) both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card::before{
+  content:'';position:absolute;top:-24px;right:-18px;
+  width:90px;height:90px;
+  background:radial-gradient(circle,rgba(123,21,37,.22),transparent 70%);
+  pointer-events:none;
+}
+.card:active{border-color:var(--border2);transform:scale(.983)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.card-name{font-size:17px;font-weight:400;color:var(--cream);line-height:1.3;flex:1;margin-right:10px}
+.card-stars{color:var(--gold);font-size:12px;letter-spacing:1px;flex-shrink:0;margin-top:2px}
+.card-meta{
+  font-size:12px;color:var(--cream2);
+  font-family:system-ui,-apple-system,sans-serif;font-weight:300;
+  letter-spacing:.04em;margin-bottom:7px;
+}
+.card-notes{
+  font-size:13px;color:var(--cream2);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card-date{
+  margin-top:9px;font-size:10px;color:rgba(239,228,210,.28);
+  font-family:system-ui,-apple-system,sans-serif;letter-spacing:.08em;
+}
+
+/* ─── Empty state ─── */
+.empty{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:64px 32px;
+  animation:fadeIn .5s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.empty-glyph{font-size:56px;margin-bottom:22px;filter:grayscale(.3)}
+.empty-title{font-size:21px;color:var(--cream);margin-bottom:9px;letter-spacing:.05em}
+.empty-body{
+  font-size:13px;color:var(--cream2);line-height:1.65;
+  font-family:system-ui,-apple-system,sans-serif;font-weight:300;max-width:230px;
+}
+
+/* ─── FAB ─── */
+.fab{
+  position:fixed;bottom:calc(var(--sb) + 24px);right:24px;
+  width:56px;height:56px;border-radius:50%;border:none;
+  background:var(--wine);color:var(--cream);font-size:28px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(123,21,37,.55),0 0 0 1px rgba(197,160,72,.2);
+  transition:transform .15s,background .15s,box-shadow .15s;
+  z-index:100;line-height:1;
+}
+.fab:active{background:var(--wine2);transform:scale(.9);box-shadow:0 2px 8px rgba(123,21,37,.4)}
+
+/* ─── Backdrops ─── */
+.backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  z-index:199;opacity:0;pointer-events:none;
+  transition:opacity .32s var(--ease);
+}
+.backdrop.on{opacity:1;pointer-events:auto}
+
+/* ─── Overlays ─── */
+.overlay{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;pointer-events:none}
+.overlay.on{pointer-events:auto}
+
+/* Form: slides up from bottom */
+#form-ov{transform:translateY(100%);transition:transform .38s var(--ease)}
+#form-ov.on{transform:none}
+
+/* Detail: slides in from right */
+#detail-ov{transform:translateX(100%);transition:transform .34s var(--ease)}
+#detail-ov.on{transform:none}
+
+/* ─── Form sheet ─── */
+.sheet{
+  background:var(--bg);border-top:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  flex:1;display:flex;flex-direction:column;
+  max-width:480px;width:100%;margin:auto;margin-top:auto;
+  max-height:92vh;position:relative;
+}
+.sheet::before{
+  content:'';position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:34px;height:4px;background:var(--border2);border-radius:2px;
+}
+.sheet-tap-close{flex:1}
+
+.form-scroll{
+  flex:1;overflow-y:auto;
+  padding:28px 22px calc(var(--sb) + 106px);
+  scrollbar-width:none;
+}
+.form-scroll::-webkit-scrollbar{display:none}
+.form-title{
+  font-size:21px;letter-spacing:.1em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:26px;padding-top:6px;
+}
+
+.field{margin-bottom:18px}
+.field label{
+  display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--cream2);margin-bottom:7px;
+  font-family:system-ui,-apple-system,sans-serif;font-weight:400;
+}
+.field input,.field textarea{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;color:var(--cream);font-size:15px;
+  padding:11px 14px;outline:none;font-family:Georgia,serif;
+  transition:border-color .2s,background .2s;-webkit-appearance:none;
+}
+.field input:focus,.field textarea:focus{border-color:var(--border2);background:var(--surface2)}
+.field input::placeholder,.field textarea::placeholder{color:var(--cream3)}
+.field textarea{resize:none;min-height:108px;line-height:1.65}
+.field input[type="date"]{color-scheme:dark}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row .field{margin-bottom:0}
+
+/* Stars */
+.star-row{display:flex;gap:6px}
+.star-btn{
+  background:none;border:none;font-size:28px;cursor:pointer;
+  color:var(--cream3);transition:color .12s,transform .12s;padding:2px 3px;line-height:1;
+}
+.star-btn.lit{color:var(--gold)}
+.star-btn:active{transform:scale(1.35)}
+
+/* error flash */
+.err{border-color:#A82438 !important}
+
+/* Form actions */
+.form-actions{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:14px 22px calc(var(--sb) + 14px);
+  background:linear-gradient(transparent,var(--bg) 38%);
+  display:flex;gap:10px;
+}
+.btn{
+  flex:1;padding:13px;border-radius:10px;border:none;
+  font-size:15px;cursor:pointer;
+  font-family:system-ui,-apple-system,sans-serif;font-weight:500;
+  letter-spacing:.03em;transition:transform .13s,opacity .13s;
+}
+.btn:active{transform:scale(.96);opacity:.88}
+.btn-primary{
+  background:var(--wine);color:var(--cream);
+  border:1px solid rgba(197,160,72,.18);
+  box-shadow:0 2px 12px rgba(123,21,37,.4);
+}
+.btn-ghost{
+  background:var(--surface);color:var(--cream2);
+  border:1px solid var(--border);flex:.5;
+}
+
+/* ─── Detail panel ─── */
+.detail-panel{
+  background:var(--bg);flex:1;display:flex;flex-direction:column;
+  overflow:hidden;max-width:480px;width:100%;margin:0 auto;
+}
+.detail-nav{
+  display:flex;align-items:center;gap:10px;
+  padding:calc(var(--st) + 14px) 22px 14px;
+  border-bottom:1px solid var(--border);
+}
+.back-btn{
+  background:none;border:none;color:var(--gold);font-size:15px;
+  cursor:pointer;font-family:system-ui,-apple-system,sans-serif;
+  padding:4px 0;display:flex;align-items:center;gap:5px;
+}
+.detail-body{
+  flex:1;overflow-y:auto;
+  padding:26px 22px calc(var(--sb) + 40px);
+  scrollbar-width:none;
+}
+.detail-body::-webkit-scrollbar{display:none}
+.d-wine{font-size:27px;line-height:1.25;color:var(--cream);margin-bottom:8px}
+.d-stars{color:var(--gold);font-size:22px;letter-spacing:3px;margin-bottom:18px}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.d-cell{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.d-cell-lbl{
+  font-size:8px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--cream2);margin-bottom:4px;
+  font-family:system-ui,-apple-system,sans-serif;
+}
+.d-cell-val{font-size:15px;color:var(--cream)}
+.d-rule{height:1px;background:linear-gradient(to right,var(--border2),transparent);margin:18px 0}
+.d-notes-lbl{
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--cream2);margin-bottom:12px;
+  font-family:system-ui,-apple-system,sans-serif;
+}
+.d-notes{font-size:15px;line-height:1.75;color:var(--cream);white-space:pre-wrap}
+.d-date{
+  margin-top:18px;font-size:10px;color:rgba(239,228,210,.28);
+  font-family:system-ui,-apple-system,sans-serif;letter-spacing:.08em;
+}
+.del-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;border-radius:10px;margin-top:28px;
+  border:1px solid rgba(180,50,50,.25);background:rgba(160,40,40,.07);
+  color:#D96060;font-family:system-ui,-apple-system,sans-serif;
+  font-size:14px;cursor:pointer;transition:background .2s;
+}
+.del-btn:active{background:rgba(160,40,40,.2)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── List view ── -->
+  <div class="hdr">
+    <div class="brand">
+      <span class="brand-name">Cave</span>
+      <span class="brand-sub">Wine Journal</span>
+    </div>
+    <div class="hdr-rule"></div>
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <circle cx="6.5" cy="6.5" r="5" stroke="#EFE4D2" stroke-width="1.4"/>
+        <path d="M10.5 10.5L13.5 13.5" stroke="#EFE4D2" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <input type="search" class="search-input" id="search-input" placeholder="Search wines…" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+  </div>
+
+  <div class="count-bar">
+    <span class="count-label" id="count-label"></span>
+  </div>
+
+  <div class="scroll-area" id="entries-list">
+    <div class="scroll-spacer"></div>
+  </div>
+
+  <button class="fab" id="fab" aria-label="Add tasting">+</button>
+
+  <!-- ── Form overlay (slide up) ── -->
+  <div class="backdrop" id="form-bd"></div>
+  <div class="overlay" id="form-ov">
+    <div class="sheet-tap-close" id="sheet-close"></div>
+    <div class="sheet">
+      <div class="form-scroll">
+        <div class="form-title">New Tasting</div>
+
+        <div class="field">
+          <label>Wine Name *</label>
+          <input type="text" id="f-name" placeholder="e.g. Château Margaux" autocomplete="off">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Winery</label>
+            <input type="text" id="f-winery" placeholder="Producer" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Vintage</label>
+            <input type="text" id="f-vintage" placeholder="Year" inputmode="numeric" maxlength="4">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Rating</label>
+          <div class="star-row" id="star-row">
+            <button class="star-btn" data-v="1">★</button>
+            <button class="star-btn" data-v="2">★</button>
+            <button class="star-btn" data-v="3">★</button>
+            <button class="star-btn" data-v="4">★</button>
+            <button class="star-btn" data-v="5">★</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tasting Notes</label>
+          <textarea id="f-notes" placeholder="Aromas, flavors, finish…"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Date Tasted</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="form-cancel">Cancel</button>
+        <button class="btn btn-primary" id="form-save">Save Tasting</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Detail overlay (slide right) ── -->
+  <div class="backdrop" id="detail-bd"></div>
+  <div class="overlay" id="detail-ov">
+    <div class="detail-panel">
+      <div class="detail-nav">
+        <button class="back-btn" id="detail-back">
+          <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
+            <path d="M7 1L1 6.5L7 12" stroke="#C5A048" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          All Wines
+        </button>
+      </div>
+      <div class="detail-body" id="detail-body"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const KEY = 'cave_v1';
+let entries = [];
+let rating = 0;
+
+function load() {
+  try { entries = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { entries = []; }
+}
+function persist() {
+  localStorage.setItem(KEY, JSON.stringify(entries));
+}
+
+/* ── Star helpers ── */
+function setRating(v) {
+  rating = v;
+  document.querySelectorAll('.star-btn').forEach(b => b.classList.toggle('lit', +b.dataset.v <= v));
+}
+function stars(n) {
+  return (n > 0 ? '★'.repeat(n) + '☆'.repeat(5 - n) : '☆☆☆☆☆');
+}
+
+/* ── Date ── */
+function today() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(s) {
+  if (!s) return '';
+  return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+
+/* ── Escaping ── */
+function esc(s) {
+  return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+}
+
+/* ── Render list ── */
+function render() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const list = q
+    ? entries.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        (e.winery||'').toLowerCase().includes(q) ||
+        (e.notes||'').toLowerCase().includes(q))
+    : entries;
+
+  const lbl = document.getElementById('count-label');
+  lbl.textContent = list.length ? (list.length === 1 ? '1 wine' : `${list.length} wines`) : '';
+
+  const el = document.getElementById('entries-list');
+  if (!list.length) {
+    const empty = q
+      ? `<div class="empty"><div class="empty-glyph">🔍</div><div class="empty-title">No results</div><div class="empty-body">No wines match &ldquo;${esc(q)}&rdquo;</div></div>`
+      : `<div class="empty"><div class="empty-glyph">🍷</div><div class="empty-title">Begin your cellar</div><div class="empty-body">Tap + to record your first tasting. Notes are saved on this device.</div></div>`;
+    el.innerHTML = empty + '<div class="scroll-spacer"></div>';
+    return;
+  }
+
+  el.innerHTML = list.map((e, i) => `
+    <div class="card" style="animation-delay:${Math.min(i,9)*.04}s" data-id="${e.id}">
+      <div class="card-top">
+        <div class="card-name">${esc(e.name)}</div>
+        <div class="card-stars">${e.rating ? stars(e.rating) : ''}</div>
+      </div>
+      ${(e.winery||e.vintage) ? `<div class="card-meta">${[e.winery,e.vintage].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
+      ${e.notes ? `<div class="card-notes">${esc(e.notes)}</div>` : ''}
+      <div class="card-date">${fmtDate(e.date)}</div>
+    </div>
+  `).join('') + '<div class="scroll-spacer"></div>';
+
+  el.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => openDetail(card.dataset.id));
+  });
+}
+
+/* ── Form ── */
+function openForm() {
+  ['f-name','f-winery','f-vintage','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-date').value = today();
+  document.getElementById('f-name').classList.remove('err');
+  setRating(0);
+  document.getElementById('form-bd').classList.add('on');
+  document.getElementById('form-ov').classList.add('on');
+  setTimeout(() => document.getElementById('f-name').focus(), 380);
+}
+function closeForm() {
+  document.getElementById('form-ov').classList.remove('on');
+  document.getElementById('form-bd').classList.remove('on');
+}
+function saveEntry() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) {
+    document.getElementById('f-name').classList.add('err');
+    document.getElementById('f-name').focus();
+    setTimeout(() => document.getElementById('f-name').classList.remove('err'), 1600);
+    return;
+  }
+  entries.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    name,
+    winery: document.getElementById('f-winery').value.trim(),
+    vintage: document.getElementById('f-vintage').value.trim(),
+    rating,
+    notes: document.getElementById('f-notes').value.trim(),
+    date: document.getElementById('f-date').value,
+  });
+  persist();
+  closeForm();
+  render();
+}
+
+/* ── Detail ── */
+let detailId = null;
+function openDetail(id) {
+  detailId = id;
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+
+  const cells = [
+    e.winery  ? `<div class="d-cell"><div class="d-cell-lbl">Winery</div><div class="d-cell-val">${esc(e.winery)}</div></div>` : '',
+    e.vintage ? `<div class="d-cell"><div class="d-cell-lbl">Vintage</div><div class="d-cell-val">${esc(e.vintage)}</div></div>` : '',
+    e.date    ? `<div class="d-cell"><div class="d-cell-lbl">Date Tasted</div><div class="d-cell-val">${fmtDate(e.date)}</div></div>` : '',
+    e.rating  ? `<div class="d-cell"><div class="d-cell-lbl">Rating</div><div class="d-cell-val" style="color:var(--gold)">${stars(e.rating)}</div></div>` : '',
+  ].filter(Boolean);
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="d-wine">${esc(e.name)}</div>
+    ${e.rating ? `<div class="d-stars">${'★'.repeat(e.rating)}${'☆'.repeat(5-e.rating)}</div>` : ''}
+    ${cells.length ? `<div class="d-grid">${cells.join('')}</div>` : ''}
+    ${e.notes ? `<div class="d-rule"></div><div class="d-notes-lbl">Tasting Notes</div><div class="d-notes">${esc(e.notes)}</div>` : ''}
+    <button class="del-btn" id="del-btn">
+      <svg width="14" height="15" viewBox="0 0 14 15" fill="none">
+        <path d="M1 3.5h12M5 3.5V2h4v1.5M2 3.5l1 9.5h8l1-9.5" stroke="#D96060" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Delete Tasting
+    </button>
+  `;
+  document.getElementById('del-btn').addEventListener('click', deleteEntry);
+
+  document.getElementById('detail-bd').classList.add('on');
+  document.getElementById('detail-ov').classList.add('on');
+}
+function closeDetail() {
+  document.getElementById('detail-ov').classList.remove('on');
+  document.getElementById('detail-bd').classList.remove('on');
+  detailId = null;
+}
+function deleteEntry() {
+  if (!confirm('Delete this tasting note?')) return;
+  entries = entries.filter(e => e.id !== detailId);
+  persist();
+  closeDetail();
+  render();
+}
+
+/* ── Wire events ── */
+document.getElementById('fab').addEventListener('click', openForm);
+document.getElementById('form-cancel').addEventListener('click', closeForm);
+document.getElementById('form-save').addEventListener('click', saveEntry);
+document.getElementById('sheet-close').addEventListener('click', closeForm);
+document.getElementById('form-bd').addEventListener('click', closeForm);
+document.getElementById('detail-back').addEventListener('click', closeDetail);
+document.getElementById('detail-bd').addEventListener('click', closeDetail);
+document.getElementById('search-input').addEventListener('input', render);
+
+document.getElementById('star-row').addEventListener('click', e => {
+  const btn = e.target.closest('.star-btn');
+  if (btn) setRating(+btn.dataset.v);
+});
+
+/* Enter key in form fields */
+['f-name','f-winery','f-vintage'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveEntry(); }
+  });
+});
+
+/* ── Boot ── */
+load();
+render();
+</script>
+</body>
+</html>

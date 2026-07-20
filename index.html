@@ -160,6 +160,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 @keyframes spin{to{transform:rotate(360deg)}}
 .scan-status{font-size:14px;color:var(--cream2);font-family:system-ui,sans-serif;display:flex;align-items:center}
 
+/* Scan mode toggle */
+.mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;margin-bottom:16px}
+.mode-btn{flex:1;padding:8px;border-radius:7px;border:none;background:none;
+  color:var(--cream2);font-size:13px;font-family:system-ui,sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.mode-btn.active{background:var(--wine);color:var(--cream);box-shadow:0 2px 8px rgba(123,21,37,.4)}
+
 /* Review table */
 .review-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
 .review-table{border-collapse:collapse;min-width:500px;width:100%}
@@ -170,6 +176,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .review-table td.desc{max-width:180px;white-space:normal;color:var(--cream2)}
 .review-table .del-row-btn{background:none;border:none;color:rgba(220,80,80,.7);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1}
 .review-table .del-row-btn:active{color:#e05050}
+.review-table tr.is-dup td{opacity:.45}
+.dup-badge{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(220,180,60,.85);
+  border:1px solid rgba(220,180,60,.3);border-radius:4px;padding:1px 6px;
+  font-family:system-ui,sans-serif;white-space:nowrap;margin-left:4px}
 .import-bar{display:flex;gap:10px;margin-top:16px}
 
 /* ── Settings view ── */
@@ -404,8 +414,8 @@ const S = {
   tab: 'journal',
   jFilter: 'all', jSearch: '',
   tSearch: '', tSort: { col: 'date', dir: 'desc' },
-  scanStep: 'idle', scanImgData: null, scanImgType: null, scanLoc: '', scanRows: [],
-  editId: null, detailId: null,
+  scanStep: 'idle', scanMode: 'menu', scanImgData: null, scanImgType: null, scanLoc: '', scanRows: [],
+  editId: null, detailId: null, formSource: 'manual',
   formRating: 0, formImg: null,
 };
 
@@ -434,6 +444,18 @@ function fmtDate(s) {
 }
 function stars(n) { return n > 0 ? '★'.repeat(n) + '☆'.repeat(5-n) : ''; }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function isDuplicate(name, winery) {
+  const n = (name||'').toLowerCase().trim();
+  const w = (winery||'').toLowerCase().trim();
+  if (!n) return false;
+  return S.entries.some(e => {
+    const en = (e.name||'').toLowerCase().trim();
+    const ew = (e.winery||'').toLowerCase().trim();
+    if (en !== n) return false;
+    if (w && ew) return ew === w;
+    return true;
+  });
+}
 async function compressImage(file) {
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -576,54 +598,91 @@ function renderScan() {
   if (!S.cfg.apiKey) {
     body.innerHTML = `<div class="scan-card">
       <div class="scan-section-title">Setup Required</div>
-      <p>Add your Claude API key in Settings to enable menu scanning. You can find it at <strong style="color:var(--gold)">console.anthropic.com</strong> → API Keys.</p>
+      <p>Add your Claude API key in Settings to enable scanning. Find it at <strong style="color:var(--gold)">console.anthropic.com</strong> → API Keys.</p>
       <button class="btn btn-gold btn-full" id="go-settings">Go to Settings</button>
     </div>`;
     document.getElementById('go-settings').addEventListener('click', () => goTab('settings'));
     return;
   }
+
   if (S.scanStep === 'idle') {
-    body.innerHTML = `<div class="scan-card">
-      <div class="scan-section-title">Location</div>
-      <p>Where are you tasting? This will be saved with every wine imported from this scan.</p>
-      <div class="loc-row">
-        <input class="loc-input" id="scan-loc-input" placeholder="Restaurant, bar, location…" value="${esc(S.scanLoc)}">
-        <button class="btn-icon" id="scan-loc-btn">📍</button>
+    const isMenu = S.scanMode === 'menu';
+    body.innerHTML = `
+    <div class="scan-card">
+      <div class="mode-toggle">
+        <button class="mode-btn ${isMenu?'active':''}" data-mode="menu">📋 Wine Menu</button>
+        <button class="mode-btn ${!isMenu?'active':''}" data-mode="bottle">🍾 Wine Bottle</button>
       </div>
+      ${isMenu ? `
+        <div class="scan-section-title">Location</div>
+        <p>Where are you? This location will be saved with every wine from this scan.</p>
+        <div class="loc-row">
+          <input class="loc-input" id="scan-loc-input" placeholder="Restaurant, bar, location…" value="${esc(S.scanLoc)}">
+          <button class="btn-icon" id="scan-loc-btn">📍</button>
+        </div>
+      ` : `
+        <div class="scan-section-title">Scan a Bottle</div>
+        <p>Take a clear photo of the wine label. Claude will extract the name, winery, vintage, region, and description — then open the form so you can review and add your notes.</p>
+        <p style="margin-bottom:0;font-size:11px;color:rgba(239,228,210,.35)">Duplicates (same name + winery) will be caught before saving.</p>
+      `}
     </div>
     <div class="scan-card">
-      <div class="scan-section-title">Wine Menu Photo</div>
-      <p>Take a photo of the wine menu or select one from your library. Claude will extract each wine automatically.</p>
       <input type="file" id="scan-file" accept="image/*" style="display:none">
-      <button class="btn btn-primary btn-full" id="scan-pick">📷 Capture or Choose Photo</button>
+      <button class="btn btn-primary btn-full" id="scan-pick">📷 ${isMenu ? 'Photo of Wine Menu' : 'Photo of Wine Bottle'}</button>
     </div>`;
-    document.getElementById('scan-loc-input').addEventListener('input', e => { S.scanLoc = e.target.value; });
-    document.getElementById('scan-loc-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('scan-loc-btn');
-      btn.textContent = '…'; btn.disabled = true;
-      S.scanLoc = await detectLocation();
-      const inp = document.getElementById('scan-loc-input');
-      if (inp) inp.value = S.scanLoc;
-      btn.textContent = '📍'; btn.disabled = false;
-    });
+
+    document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
+      S.scanMode = b.dataset.mode; renderScan();
+    }));
+    if (isMenu) {
+      document.getElementById('scan-loc-input').addEventListener('input', e => { S.scanLoc = e.target.value; });
+      document.getElementById('scan-loc-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('scan-loc-btn');
+        btn.textContent = '…'; btn.disabled = true;
+        S.scanLoc = await detectLocation();
+        const inp = document.getElementById('scan-loc-input');
+        if (inp) inp.value = S.scanLoc;
+        btn.textContent = '📍'; btn.disabled = false;
+      });
+    }
     document.getElementById('scan-pick').addEventListener('click', () => document.getElementById('scan-file').click());
     document.getElementById('scan-file').addEventListener('change', async e => {
       const file = e.target.files[0]; if (!file) return;
       S.scanStep = 'processing';
       const reader = new FileReader();
       reader.onload = async ev => {
-        const dataUrl = ev.target.result;
         S.scanImgType = file.type || 'image/jpeg';
-        S.scanImgData = dataUrl.split(',')[1];
+        S.scanImgData = ev.target.result.split(',')[1];
         renderScan();
         try {
-          const rows = await analyzeMenu(S.scanImgData, S.scanImgType);
-          S.scanRows = rows.map((r,i) => ({ ...r, _idx: i }));
-          S.scanStep = 'review';
+          if (S.scanMode === 'menu') {
+            const rows = await analyzeMenu(S.scanImgData, S.scanImgType);
+            S.scanRows = rows.map((r,i) => {
+              const name = r.name||r.wine_name||'';
+              const winery = r.winery||r.producer||'';
+              return { ...r, _name:name, _winery:winery, _dup: isDuplicate(name, winery) };
+            });
+            S.scanStep = 'review';
+          } else {
+            const wine = await analyzeBottle(S.scanImgData, S.scanImgType);
+            S.scanStep = 'idle';
+            const name = wine.name||'';
+            const winery = wine.winery||'';
+            if (isDuplicate(name, winery)) {
+              const existing = S.entries.find(e => (e.name||'').toLowerCase().trim() === name.toLowerCase().trim());
+              if (!confirm(`"${name}" by ${winery||'unknown winery'} is already in your journal. Open the existing entry to edit it instead? (Cancel to add anyway)`)) {
+                openForm(null, { ...wine, source:'manual', location: S.scanLoc });
+              } else if (existing) {
+                openDetail(existing.id);
+              }
+            } else {
+              openForm(null, { ...wine, source:'manual', location: S.scanLoc });
+            }
+          }
           renderScan();
         } catch(err) {
           S.scanStep = 'idle';
-          alert('Analysis failed: ' + err.message);
+          alert('Scan failed: ' + err.message);
           renderScan();
         }
       };
@@ -631,27 +690,32 @@ function renderScan() {
     });
     return;
   }
+
   if (S.scanStep === 'processing') {
+    const label = S.scanMode === 'menu' ? 'Extracting wines from menu…' : 'Reading bottle label…';
     body.innerHTML = `<div class="scan-card" style="text-align:center;padding:40px 20px">
-      <div class="scan-status"><span class="spinner"></span> Analyzing menu with Claude…</div>
-      <p style="margin-top:16px;margin-bottom:0;font-size:12px">This usually takes 5–15 seconds</p>
+      <div class="scan-status"><span class="spinner"></span> ${label}</div>
+      <p style="margin-top:16px;margin-bottom:0;font-size:12px">Usually takes 5–15 seconds</p>
     </div>`;
     return;
   }
+
   if (S.scanStep === 'review') {
-    const locLine = S.scanLoc ? `<p style="margin-bottom:0"><strong style="color:var(--gold)">Location:</strong> ${esc(S.scanLoc)}</p>` : '';
+    const dupCount = S.scanRows.filter(r=>r._dup).length;
+    const newCount = S.scanRows.length - dupCount;
+    const locLine = S.scanLoc ? `<p><strong style="color:var(--gold)">Location:</strong> ${esc(S.scanLoc)}</p>` : '';
     body.innerHTML = `<div class="scan-card">
-      <div class="scan-section-title">Review — ${S.scanRows.length} wine${S.scanRows.length!==1?'s':''} found</div>
+      <div class="scan-section-title">${S.scanRows.length} wine${S.scanRows.length!==1?'s':''} found</div>
       ${locLine}
-      <p style="${S.scanLoc?'margin-top:10px':''}">Remove any wines you don't want, then tap Import.</p>
+      <p>Remove unwanted wines then tap Import. <strong style="color:var(--cream)">${newCount} new</strong>${dupCount?` · <span style="color:rgba(220,180,60,.85)">${dupCount} already saved</span>`:''}.</p>
       <div class="review-table-wrap">
         <table class="review-table">
           <thead><tr><th></th><th>Wine</th><th>Winery</th><th>Vintage</th><th>Region</th><th>Price</th><th class="desc">Description</th></tr></thead>
-          <tbody id="review-tbody">
-            ${S.scanRows.map((r,i) => `<tr data-idx="${i}">
+          <tbody>
+            ${S.scanRows.map((r,i) => `<tr class="${r._dup?'is-dup':''}">
               <td><button class="del-row-btn" data-i="${i}">×</button></td>
-              <td>${esc(r.name||r.wine_name||'')}</td>
-              <td>${esc(r.winery||r.producer||'')}</td>
+              <td>${esc(r._name||'')}${r._dup?'<span class="dup-badge">saved</span>':''}</td>
+              <td>${esc(r._winery||'')}</td>
               <td>${esc(r.vintage||r.year||'')}</td>
               <td>${esc(r.region||r.appellation||'')}</td>
               <td>${esc(r.price||'')}</td>
@@ -662,12 +726,11 @@ function renderScan() {
       </div>
       <div class="import-bar">
         <button class="btn btn-ghost" id="scan-cancel">Cancel</button>
-        <button class="btn btn-primary" id="scan-import" style="flex:1">Import ${S.scanRows.length} Wine${S.scanRows.length!==1?'s':''}</button>
+        <button class="btn btn-primary" id="scan-import" style="flex:1">Import ${newCount} New Wine${newCount!==1?'s':''}</button>
       </div>
     </div>`;
     document.querySelectorAll('.del-row-btn').forEach(btn => btn.addEventListener('click', () => {
       S.scanRows.splice(+btn.dataset.i, 1);
-      S.scanRows.forEach((r,i) => r._idx = i);
       renderScan();
     }));
     document.getElementById('scan-cancel').addEventListener('click', () => { S.scanStep='idle'; S.scanRows=[]; renderScan(); });
@@ -676,27 +739,27 @@ function renderScan() {
 }
 
 function importScannedWines() {
-  const loc = S.scanLoc;
-  const now = today();
-  const newEntries = S.scanRows.map(r => ({
+  const loc = S.scanLoc, now = today();
+  const toImport = S.scanRows.filter(r => !isDuplicate(r._name||r.name||'', r._winery||r.winery||''));
+  const skipped = S.scanRows.length - toImport.length;
+  const newEntries = toImport.map(r => ({
     id: uid(),
-    name: r.name || r.wine_name || 'Unknown Wine',
-    winery: r.winery || r.producer || '',
+    name: r._name || r.name || r.wine_name || 'Unknown Wine',
+    winery: r._winery || r.winery || r.producer || '',
     vintage: r.vintage || r.year || '',
     region: r.region || r.appellation || '',
     price: r.price || '',
-    rating: 0,
-    notes: '',
+    rating: 0, notes: '',
     description: r.description || r.tasting_notes || r.notes || '',
-    date: now,
-    location: loc,
-    source: 'menu',
-    image: null,
+    date: now, location: loc, source: 'menu', image: null,
   }));
   S.entries = [...newEntries, ...S.entries];
   persist();
   S.scanStep = 'idle'; S.scanRows = []; S.scanLoc = '';
-  alert(`Imported ${newEntries.length} wine${newEntries.length!==1?'s':''}!`);
+  const msg = newEntries.length
+    ? `Imported ${newEntries.length} wine${newEntries.length!==1?'s':''}${skipped?` · Skipped ${skipped} duplicate${skipped!==1?'s':''}`:''}.`
+    : `All ${skipped} wine${skipped!==1?'s were':' was'} already in your journal — nothing imported.`;
+  alert(msg);
   goTab('journal');
   S.jFilter = 'menu';
   document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.filter==='menu'));
@@ -719,6 +782,31 @@ async function analyzeMenu(base64, mediaType) {
       messages: [{ role: 'user', content: [
         { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
         { type: 'text', text: 'Extract every wine from this wine menu. Return ONLY a valid JSON array, no markdown. Each object: {"name":"","winery":"","vintage":"","region":"","price":"","description":""}. Use empty string for missing fields. Include every wine listed.' }
+      ]}]
+    })
+  });
+  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || `API error ${resp.status}`); }
+  const data = await resp.json();
+  const text = data.content[0].text.trim().replace(/^```json?\n?/,'').replace(/\n?```$/,'');
+  return JSON.parse(text);
+}
+
+/* ══ BOTTLE API ══ */
+async function analyzeBottle(base64, mediaType) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': S.cfg.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+        { type: 'text', text: 'Read this wine bottle label carefully. Return ONLY a valid JSON object, no markdown. Fields: {"name":"wine name/cuvée","winery":"producer name","vintage":"year as string","region":"appellation or region","description":"grape varieties, alcohol %, and any tasting notes or style info from the label"}. Use empty string for missing fields.' }
       ]}]
     })
   });
@@ -794,27 +882,28 @@ function closeDetail() {
 }
 
 /* ══ FORM ══ */
-function openForm(id) {
-  S.editId = id || null; S.formRating = 0; S.formImg = null;
-  document.getElementById('form-title').textContent = id ? 'Edit Tasting' : 'New Tasting';
+function openForm(id, prefill) {
+  S.editId = id || null; S.formRating = 0; S.formImg = null; S.formSource = prefill?.source || 'manual';
+  document.getElementById('form-title').textContent = id ? 'Edit Tasting' : (prefill ? 'Review Bottle Scan' : 'New Tasting');
   document.getElementById('f-img-preview').style.display = 'none';
   const e = id ? S.entries.find(x => x.id === id) : null;
+  const d = e || prefill || {};
   document.getElementById('f-id').value = id || '';
-  document.getElementById('f-name').value = e?.name || '';
-  document.getElementById('f-winery').value = e?.winery || '';
-  document.getElementById('f-vintage').value = e?.vintage || '';
-  document.getElementById('f-region').value = e?.region || '';
-  document.getElementById('f-price').value = e?.price || '';
-  document.getElementById('f-notes').value = e?.notes || '';
-  document.getElementById('f-desc').value = e?.description || '';
-  document.getElementById('f-date').value = e?.date || today();
-  document.getElementById('f-location').value = e?.location || '';
+  document.getElementById('f-name').value = d.name || '';
+  document.getElementById('f-winery').value = d.winery || '';
+  document.getElementById('f-vintage').value = d.vintage || '';
+  document.getElementById('f-region').value = d.region || '';
+  document.getElementById('f-price').value = d.price || '';
+  document.getElementById('f-notes').value = d.notes || '';
+  document.getElementById('f-desc').value = d.description || '';
+  document.getElementById('f-date').value = d.date || today();
+  document.getElementById('f-location').value = d.location || '';
   document.getElementById('f-name').classList.remove('err-border');
-  if (e?.image) { const prev = document.getElementById('f-img-preview'); prev.src = e.image; prev.style.display='block'; S.formImg = e.image; }
-  setFormRating(e?.rating || 0);
+  if (d.image) { const prev = document.getElementById('f-img-preview'); prev.src = d.image; prev.style.display='block'; S.formImg = d.image; }
+  setFormRating(d.rating || 0);
   document.getElementById('form-bd').classList.add('on');
   document.getElementById('form-ov').classList.add('on');
-  setTimeout(() => document.getElementById('f-name').focus(), 380);
+  setTimeout(() => { const el = document.getElementById('f-name'); if (!el.value) el.focus(); else document.getElementById('f-notes').focus(); }, 380);
 }
 function closeForm() {
   document.getElementById('form-ov').classList.remove('on');
@@ -839,7 +928,7 @@ function saveForm() {
     description: document.getElementById('f-desc').value.trim(),
     date: document.getElementById('f-date').value,
     location: document.getElementById('f-location').value.trim(),
-    source: id ? (S.entries.find(e=>e.id===id)?.source||'manual') : 'manual',
+    source: id ? (S.entries.find(e=>e.id===id)?.source||'manual') : S.formSource,
     image: S.formImg || null,
   };
   if (id) { const i = S.entries.findIndex(e=>e.id===id); if (i>=0) S.entries[i]=entry; }

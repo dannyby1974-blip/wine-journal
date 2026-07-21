@@ -598,7 +598,7 @@ function renderScan() {
   if (!S.cfg.apiKey) {
     body.innerHTML = `<div class="scan-card">
       <div class="scan-section-title">Setup Required</div>
-      <p>Add your OpenAI API key in Settings to enable scanning. Find it at <strong style="color:var(--gold)">platform.openai.com/api-keys</strong>.</p>
+      <p>Add your Google Gemini API key in Settings to enable scanning. Get one free at <strong style="color:var(--gold)">aistudio.google.com</strong> → Get API Key.</p>
       <button class="btn btn-gold btn-full" id="go-settings">Go to Settings</button>
     </div>`;
     document.getElementById('go-settings').addEventListener('click', () => goTab('settings'));
@@ -766,34 +766,34 @@ function importScannedWines() {
   renderJournal();
 }
 
-/* ══ OPENAI API ══ */
-async function openaiVision(base64, mediaType, prompt, multi) {
-  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+/* ══ GOOGLE GEMINI API ══ */
+async function geminiVision(base64, mediaType, prompt, large) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.cfg.apiKey}`;
+  const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${S.cfg.apiKey}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-4o',
-      max_tokens: multi ? 4096 : 1024,
-      messages: [{ role: 'user', content: [
-        { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}`, detail: 'high' } },
-        { type: 'text', text: prompt }
-      ]}]
+      contents: [{ parts: [
+        { inline_data: { mime_type: mediaType, data: base64 } },
+        { text: prompt }
+      ]}],
+      generationConfig: { response_mime_type: 'application/json', max_output_tokens: large ? 4096 : 1024 }
     })
   });
   if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || `API error ${resp.status}`); }
   const data = await resp.json();
-  const text = data.choices[0].message.content.trim().replace(/^```json?\n?/,'').replace(/\n?```$/,'');
+  const text = (data.candidates[0].content.parts[0].text || '').trim().replace(/^```json?\n?/,'').replace(/\n?```$/,'');
   return JSON.parse(text);
 }
 async function analyzeMenu(base64, mediaType) {
-  return openaiVision(base64, mediaType,
+  return geminiVision(base64, mediaType,
     'Extract every wine from this wine menu. Return ONLY a valid JSON array, no markdown. Each object: {"name":"","winery":"","vintage":"","region":"","price":"","description":""}. Use empty string for missing fields. Include every wine listed.',
     true);
 }
 
 /* ══ BOTTLE API ══ */
 async function analyzeBottle(base64, mediaType) {
-  return openaiVision(base64, mediaType,
+  return geminiVision(base64, mediaType,
     'Read this wine bottle label carefully. Return ONLY a valid JSON object, no markdown. Fields: {"name":"wine name/cuvée","winery":"producer name","vintage":"year as string","region":"appellation or region","description":"grape varieties, alcohol %, and any tasting notes or style info from the label"}. Use empty string for missing fields.',
     false);
 }
@@ -803,11 +803,11 @@ function renderSettings() {
   const body = document.getElementById('settings-body');
   body.innerHTML = `
     <div class="settings-section">
-      <h3>OpenAI API Key</h3>
-      <p>Your key is stored only on this device and never sent anywhere except OpenAI's API for menu and bottle scanning.</p>
-      <p>Find it at <strong style="color:var(--gold)">platform.openai.com/api-keys</strong>. Keys start with <code style="color:var(--gold)">sk-proj-</code></p>
+      <h3>Google Gemini API Key</h3>
+      <p>Your key is stored only on this device and never sent anywhere except Google's API for menu and bottle scanning.</p>
+      <p>Find it at <strong style="color:var(--gold)">aistudio.google.com</strong> → Get API Key. Keys start with <code style="color:var(--gold)">AIza</code></p>
       <div class="key-row">
-        <input class="key-input" id="api-key-input" type="password" placeholder="sk-proj-…" value="${esc(S.cfg.apiKey)}" autocomplete="off" spellcheck="false">
+        <input class="key-input" id="api-key-input" type="password" placeholder="AIza…" value="${esc(S.cfg.apiKey)}" autocomplete="off" spellcheck="false">
         <button class="btn-icon" id="key-show-btn">👁</button>
       </div>
       <div style="margin-top:10px"><button class="btn btn-gold" id="key-save-btn">Save Key</button></div>

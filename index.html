@@ -25,6 +25,26 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
 #app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
 
+/* ── Setup overlay ── */
+#setup-overlay{
+  position:fixed;inset:0;background:var(--bg);z-index:2000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 28px calc(var(--sb) + 32px);
+}
+.setup-logo{font-size:32px;letter-spacing:.28em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.setup-sub{font-size:10px;letter-spacing:.2em;color:var(--cream2);text-transform:uppercase;font-family:system-ui,sans-serif;margin-bottom:32px}
+.setup-rule{height:1px;width:100%;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);margin-bottom:32px}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;margin-bottom:16px}
+.setup-card h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-family:system-ui,sans-serif;font-weight:400;margin-bottom:8px}
+.setup-card p{font-size:13px;color:var(--cream2);line-height:1.6;font-family:system-ui,sans-serif;font-weight:300;margin-bottom:16px}
+.setup-or{text-align:center;font-size:11px;color:var(--cream2);font-family:system-ui,sans-serif;letter-spacing:.12em;margin:4px 0 4px}
+.setup-join-row{display:flex;gap:8px;margin-top:12px}
+.setup-join-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--cream);font-size:16px;padding:10px 14px;outline:none;font-family:system-ui,sans-serif;
+  letter-spacing:.2em;text-transform:uppercase;-webkit-appearance:none}
+.setup-join-row input:focus{border-color:var(--border2)}
+.setup-join-row input::placeholder{color:var(--cream3);letter-spacing:.1em;text-transform:none}
+
 /* ── Views ── */
 .view{display:none;flex-direction:column;flex:1;overflow:hidden;padding-bottom:calc(var(--tb) + var(--sb))}
 .view.active{display:flex}
@@ -32,22 +52,22 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 /* ── Tab bar ── */
 .tabbar{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:100%;max-width:480px;
-  height:calc(var(--tb) + var(--sb));
-  background:rgba(7,2,4,.92);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid var(--border);
-  display:flex;align-items:flex-start;padding-top:6px;
-  z-index:150;
+  width:100%;max-width:480px;height:calc(var(--tb) + var(--sb));
+  background:rgba(7,2,4,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:6px;z-index:150;
 }
-.tab{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  background:none;border:none;cursor:pointer;padding:6px 0;
-  color:var(--cream2);transition:color .2s;
-}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;
+  border:none;cursor:pointer;padding:6px 0;color:var(--cream2);transition:color .2s}
 .tab.active{color:var(--gold)}
 .tab-icon{font-size:20px;line-height:1}
 .tab-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:system-ui,sans-serif;font-weight:400}
+
+/* ── Sync indicator ── */
+.sync-dot{width:6px;height:6px;border-radius:50%;background:rgba(100,200,100,.7);
+  position:fixed;top:calc(var(--st) + 10px);right:14px;z-index:160;transition:background .4s}
+.sync-dot.offline{background:rgba(200,100,100,.7)}
+.sync-dot.syncing{animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── Shared header ── */
 .hdr{flex-shrink:0;padding:calc(var(--st) + 18px) 22px 0;position:relative;z-index:10}
@@ -95,11 +115,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .card-notes{font-size:13px;color:var(--cream2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:9px}
 .card-date{font-size:10px;color:rgba(239,228,210,.28);font-family:system-ui,sans-serif;letter-spacing:.08em}
-.card-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:2px 8px;border-radius:10px;
-  border:1px solid;font-family:system-ui,sans-serif}
+.card-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:2px 8px;border-radius:10px;border:1px solid;font-family:system-ui,sans-serif}
 .card-tag.menu{color:var(--gold-dim);border-color:rgba(197,160,72,.25)}
-.card-loc{font-size:10px;color:var(--cream2);font-family:system-ui,sans-serif;letter-spacing:.03em;
-  display:flex;align-items:center;gap:4px;margin-top:5px}
+.card-loc{font-size:10px;color:var(--cream2);font-family:system-ui,sans-serif;letter-spacing:.03em;display:flex;align-items:center;gap:4px;margin-top:5px}
 
 /* ── Empty state ── */
 .empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:64px 32px;animation:fadeIn .5s ease}
@@ -118,35 +136,26 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .fab:active{background:var(--wine2);transform:scale(.9)}
 
 /* ── Table view ── */
-.table-outer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
-  scrollbar-color:var(--border) transparent}
-.wine-table{border-collapse:collapse;min-width:780px;width:100%}
+.table-outer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.wine-table{border-collapse:collapse;min-width:820px;width:100%}
 .wine-table thead{position:sticky;top:0;z-index:10}
-.wine-table th{
-  background:var(--bg);border-bottom:1px solid var(--border2);
-  padding:10px 14px;text-align:left;cursor:pointer;white-space:nowrap;
-  font-size:9px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--cream2);font-family:system-ui,sans-serif;font-weight:400;
-  transition:color .2s;user-select:none;
-}
+.wine-table th{background:var(--bg);border-bottom:1px solid var(--border2);padding:10px 14px;
+  text-align:left;cursor:pointer;white-space:nowrap;font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--cream2);font-family:system-ui,sans-serif;font-weight:400;
+  transition:color .2s;user-select:none}
 .wine-table th.sorted{color:var(--gold)}
 .wine-table th .sort-arrow{margin-left:4px;opacity:.6}
-.wine-table td{
-  padding:10px 14px;border-bottom:1px solid var(--border);
-  white-space:nowrap;font-size:13px;vertical-align:middle;color:var(--cream);
-  font-family:system-ui,sans-serif;font-weight:300;
-}
+.wine-table td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap;
+  font-size:13px;vertical-align:middle;color:var(--cream);font-family:system-ui,sans-serif;font-weight:300}
 .wine-table td.col-thumb{padding:8px 8px 8px 14px;width:52px}
 .wine-table td.col-name{font-family:Georgia,serif;font-size:14px;color:var(--cream)}
 .wine-table td.col-notes{white-space:normal;max-width:200px;font-size:12px;color:var(--cream2);line-height:1.4}
 .wine-table td.col-rating{color:var(--gold);letter-spacing:1px}
-.wine-table td.col-source .menu-tag{color:var(--gold-dim);font-size:9px;letter-spacing:.1em;
-  border:1px solid rgba(197,160,72,.25);border-radius:4px;padding:1px 6px}
+.wine-table td.col-source .menu-tag{color:var(--gold-dim);font-size:9px;letter-spacing:.1em;border:1px solid rgba(197,160,72,.25);border-radius:4px;padding:1px 6px}
 .wine-table tr{cursor:pointer;transition:background .15s}
 .wine-table tr:active td{background:var(--surface)}
 .tbl-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;display:block}
-.tbl-thumb-empty{width:44px;height:44px;border-radius:6px;background:var(--surface2);
-  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px}
+.tbl-thumb-empty{width:44px;height:44px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px}
 .tbl-empty{padding:48px 22px;text-align:center;color:var(--cream2);font-family:system-ui,sans-serif;font-size:14px}
 
 /* ── Scan view ── */
@@ -156,71 +165,53 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .scan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
 .scan-card p{font-size:13px;color:var(--cream2);line-height:1.6;font-family:system-ui,sans-serif;font-weight:300;margin-bottom:14px}
 .loc-row{display:flex;align-items:center;gap:10px;margin-bottom:0}
-.loc-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--cream);font-size:14px;font-family:system-ui,sans-serif;padding:9px 12px;outline:none;-webkit-appearance:none}
+.loc-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--cream);font-size:14px;font-family:system-ui,sans-serif;padding:9px 12px;outline:none;-webkit-appearance:none}
 .loc-input:focus{border-color:var(--border2)}
 .loc-input::placeholder{color:var(--cream3)}
-.scan-img-preview{width:100%;border-radius:8px;display:block;margin-top:12px;max-height:200px;object-fit:cover}
-.spinner{display:inline-block;width:22px;height:22px;border:2px solid var(--border);
-  border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+.spinner{display:inline-block;width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .scan-status{font-size:14px;color:var(--cream2);font-family:system-ui,sans-serif;display:flex;align-items:center}
-
-/* Scan mode toggle */
 .mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;margin-bottom:16px}
-.mode-btn{flex:1;padding:8px;border-radius:7px;border:none;background:none;
-  color:var(--cream2);font-size:13px;font-family:system-ui,sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.mode-btn{flex:1;padding:8px;border-radius:7px;border:none;background:none;color:var(--cream2);font-size:13px;font-family:system-ui,sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
 .mode-btn.active{background:var(--wine);color:var(--cream);box-shadow:0 2px 8px rgba(123,21,37,.4)}
-
-/* Review table */
 .review-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
 .review-table{border-collapse:collapse;min-width:500px;width:100%}
-.review-table th{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--cream2);
-  font-family:system-ui,sans-serif;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
-.review-table td{font-size:12px;font-family:system-ui,sans-serif;color:var(--cream);
-  padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.4}
+.review-table th{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--cream2);font-family:system-ui,sans-serif;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+.review-table td{font-size:12px;font-family:system-ui,sans-serif;color:var(--cream);padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.4}
 .review-table td.desc{max-width:180px;white-space:normal;color:var(--cream2)}
 .review-table .del-row-btn{background:none;border:none;color:rgba(220,80,80,.7);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1}
-.review-table .del-row-btn:active{color:#e05050}
 .review-table tr.is-dup td{opacity:.45}
-.dup-badge{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(220,180,60,.85);
-  border:1px solid rgba(220,180,60,.3);border-radius:4px;padding:1px 6px;
-  font-family:system-ui,sans-serif;white-space:nowrap;margin-left:4px}
+.dup-badge{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(220,180,60,.85);border:1px solid rgba(220,180,60,.3);border-radius:4px;padding:1px 6px;font-family:system-ui,sans-serif;white-space:nowrap;margin-left:4px}
 .import-bar{display:flex;gap:10px;margin-top:16px}
 
 /* ── Settings view ── */
 .settings-body{flex:1;overflow-y:auto;padding:20px 22px calc(var(--sb) + 20px);scrollbar-width:none}
 .settings-body::-webkit-scrollbar{display:none}
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:18px}
-.settings-section h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
-  font-family:system-ui,sans-serif;font-weight:400;margin-bottom:12px}
+.settings-section h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-family:system-ui,sans-serif;font-weight:400;margin-bottom:12px}
 .settings-section p{font-size:12px;color:var(--cream2);line-height:1.6;font-family:system-ui,sans-serif;font-weight:300;margin-bottom:14px}
+.code-display{font-size:32px;letter-spacing:.3em;color:var(--gold);font-family:system-ui,sans-serif;font-weight:300;text-align:center;padding:16px 0;text-transform:uppercase}
 .key-row{display:flex;gap:8px}
-.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--cream);font-size:14px;font-family:system-ui,sans-serif;padding:10px 12px;outline:none;-webkit-appearance:none}
+.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--cream);font-size:14px;font-family:system-ui,sans-serif;padding:10px 12px;outline:none;-webkit-appearance:none}
 .key-input:focus{border-color:var(--border2)}
 .key-input::placeholder{color:var(--cream3)}
-.saved-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#7ed4a0;
-  font-family:system-ui,sans-serif;margin-top:8px;opacity:0;transition:opacity .4s}
+.saved-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#7ed4a0;font-family:system-ui,sans-serif;margin-top:8px;opacity:0;transition:opacity .4s}
 .saved-badge.on{opacity:1}
 
 /* ── Buttons ── */
-.btn{padding:12px 18px;border-radius:10px;border:none;font-size:14px;cursor:pointer;
-  font-family:system-ui,sans-serif;font-weight:500;letter-spacing:.03em;transition:transform .13s,opacity .13s}
+.btn{padding:12px 18px;border-radius:10px;border:none;font-size:14px;cursor:pointer;font-family:system-ui,sans-serif;font-weight:500;letter-spacing:.03em;transition:transform .13s,opacity .13s}
 .btn:active{transform:scale(.96);opacity:.88}
 .btn-primary{background:var(--wine);color:var(--cream);border:1px solid rgba(197,160,72,.18);box-shadow:0 2px 12px rgba(123,21,37,.4)}
 .btn-ghost{background:var(--surface);color:var(--cream2);border:1px solid var(--border)}
 .btn-gold{background:var(--gold-faint);color:var(--gold);border:1px solid rgba(197,160,72,.3)}
 .btn-sm{padding:8px 14px;font-size:12px;border-radius:8px}
 .btn-full{width:100%}
-.btn-icon{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;
-  color:var(--cream2);cursor:pointer;font-size:14px;white-space:nowrap;display:flex;align-items:center;gap:6px;
-  font-family:system-ui,sans-serif;font-size:13px;transition:border-color .2s,color .2s}
+.btn-icon{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--cream2);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:system-ui,sans-serif;font-size:13px;transition:border-color .2s,color .2s;white-space:nowrap}
 .btn-icon:active{border-color:var(--border2);color:var(--cream)}
+.btn-danger{background:rgba(160,40,40,.08);color:#D96060;border:1px solid rgba(180,50,50,.25)}
 
 /* ── Overlays ── */
-.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:199;
-  opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:199;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
 .backdrop.on{opacity:1;pointer-events:auto}
 .overlay{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;pointer-events:none}
 .overlay.on{pointer-events:auto}
@@ -230,22 +221,15 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 #detail-ov.on{transform:none}
 
 /* ── Form sheet ── */
-.sheet{background:var(--bg);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;
-  flex:1;display:flex;flex-direction:column;max-width:480px;width:100%;
-  margin:auto;margin-top:auto;max-height:94vh;position:relative}
-.sheet::before{content:'';position:absolute;top:11px;left:50%;transform:translateX(-50%);
-  width:34px;height:4px;background:var(--border2);border-radius:2px}
+.sheet{background:var(--bg);border-top:1px solid var(--border2);border-radius:20px 20px 0 0;flex:1;display:flex;flex-direction:column;max-width:480px;width:100%;margin:auto;margin-top:auto;max-height:94vh;position:relative}
+.sheet::before{content:'';position:absolute;top:11px;left:50%;transform:translateX(-50%);width:34px;height:4px;background:var(--border2);border-radius:2px}
 .sheet-tap-close{flex:1}
 .form-scroll{flex:1;overflow-y:auto;padding:28px 22px calc(var(--sb) + 106px);scrollbar-width:none}
 .form-scroll::-webkit-scrollbar{display:none}
 .form-title{font-size:20px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:24px;padding-top:6px}
 .field{margin-bottom:17px}
-.field label{display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--cream2);margin-bottom:7px;font-family:system-ui,sans-serif;font-weight:400}
-.field input,.field textarea,.field select{
-  width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  color:var(--cream);font-size:15px;padding:11px 14px;outline:none;font-family:Georgia,serif;
-  transition:border-color .2s,background .2s;-webkit-appearance:none}
+.field label{display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream2);margin-bottom:7px;font-family:system-ui,sans-serif;font-weight:400}
+.field input,.field textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--cream);font-size:15px;padding:11px 14px;outline:none;font-family:Georgia,serif;transition:border-color .2s,background .2s;-webkit-appearance:none}
 .field input:focus,.field textarea:focus{border-color:var(--border2);background:var(--surface2)}
 .field input::placeholder,.field textarea::placeholder{color:var(--cream3)}
 .field textarea{resize:none;min-height:100px;line-height:1.65}
@@ -253,23 +237,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field-row .field{margin-bottom:0}
 .star-row{display:flex;gap:6px}
-.star-btn{background:none;border:none;font-size:28px;cursor:pointer;color:var(--cream3);
-  transition:color .12s,transform .12s;padding:2px 3px;line-height:1}
+.star-btn{background:none;border:none;font-size:28px;cursor:pointer;color:var(--cream3);transition:color .12s,transform .12s;padding:2px 3px;line-height:1}
 .star-btn.lit{color:var(--gold)}
 .star-btn:active{transform:scale(1.35)}
 .form-img-preview{width:100%;border-radius:8px;display:block;margin-top:10px;max-height:180px;object-fit:cover}
 .loc-field-row{display:flex;gap:8px}
 .loc-field-row input{flex:1}
-.form-actions{position:absolute;bottom:0;left:0;right:0;padding:14px 22px calc(var(--sb) + 14px);
-  background:linear-gradient(transparent,var(--bg) 38%);display:flex;gap:10px}
+.form-actions{position:absolute;bottom:0;left:0;right:0;padding:14px 22px calc(var(--sb) + 14px);background:linear-gradient(transparent,var(--bg) 38%);display:flex;gap:10px}
 .err-border{border-color:#A82438 !important}
 
 /* ── Detail panel ── */
 .detail-panel{background:var(--bg);flex:1;display:flex;flex-direction:column;overflow:hidden;max-width:480px;width:100%;margin:0 auto}
-.detail-nav{display:flex;align-items:center;justify-content:space-between;
-  padding:calc(var(--st) + 14px) 22px 14px;border-bottom:1px solid var(--border)}
-.back-btn{background:none;border:none;color:var(--gold);font-size:15px;cursor:pointer;
-  font-family:system-ui,sans-serif;padding:4px 0;display:flex;align-items:center;gap:5px}
+.detail-nav{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 14px) 22px 14px;border-bottom:1px solid var(--border)}
+.back-btn{background:none;border:none;color:var(--gold);font-size:15px;cursor:pointer;font-family:system-ui,sans-serif;padding:4px 0;display:flex;align-items:center;gap:5px}
 .detail-body{flex:1;overflow-y:auto;padding:0 0 calc(var(--sb)+30px);scrollbar-width:none}
 .detail-body::-webkit-scrollbar{display:none}
 .detail-hero{width:100%;max-height:240px;object-fit:cover;display:block}
@@ -284,15 +264,39 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .d-notes-lbl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream2);margin-bottom:10px;font-family:system-ui,sans-serif}
 .d-notes{font-size:15px;line-height:1.75;color:var(--cream);white-space:pre-wrap}
 .detail-actions{display:flex;gap:10px;padding:22px 22px 0}
-.del-btn{display:flex;align-items:center;justify-content:center;gap:7px;
-  width:100%;padding:12px;border-radius:10px;margin-top:14px;margin:14px 22px 0;
-  border:1px solid rgba(180,50,50,.25);background:rgba(160,40,40,.07);
-  color:#D96060;font-family:system-ui,sans-serif;font-size:14px;cursor:pointer;transition:background .2s;width:calc(100% - 44px)}
+.del-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:10px;
+  border:1px solid rgba(180,50,50,.25);background:rgba(160,40,40,.07);color:#D96060;
+  font-family:system-ui,sans-serif;font-size:14px;cursor:pointer;transition:background .2s;
+  margin:14px 22px 0;width:calc(100% - 44px)}
 .del-btn:active{background:rgba(160,40,40,.2)}
 </style>
 </head>
 <body>
 <div id="app">
+
+  <!-- ── Setup overlay ── -->
+  <div id="setup-overlay">
+    <div class="setup-logo">Cave</div>
+    <div class="setup-sub">Wine Journal</div>
+    <div class="setup-rule"></div>
+    <div class="setup-card">
+      <h3>Start a New Journal</h3>
+      <p>Creates a shared journal for you and your wife. You'll get a 6-character code to share with her.</p>
+      <button class="btn btn-primary btn-full" id="setup-create">Create New Journal</button>
+    </div>
+    <div class="setup-or">— or join an existing one —</div>
+    <div class="setup-card" style="margin-top:16px">
+      <h3>Join a Journal</h3>
+      <p>Enter the code from your wife's phone to share the same journal.</p>
+      <div class="setup-join-row">
+        <input id="setup-code-input" placeholder="Enter code" maxlength="6" autocomplete="off" spellcheck="false">
+        <button class="btn btn-gold" id="setup-join">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sync dot ── -->
+  <div class="sync-dot" id="sync-dot" title="Sync status"></div>
 
   <!-- ── Journal view ── -->
   <div id="v-journal" class="view active">
@@ -329,7 +333,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
   <!-- ── Scan view ── -->
   <div id="v-scan" class="view">
     <div class="hdr">
-      <div class="brand"><span class="brand-name">Cave</span><span class="brand-sub">Scan Menu</span></div>
+      <div class="brand"><span class="brand-name">Cave</span><span class="brand-sub">Scan</span></div>
       <div class="hdr-rule"></div>
     </div>
     <div class="scan-body" id="scan-body"></div>
@@ -351,8 +355,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
     <button class="tab" data-tab="scan"><span class="tab-icon">⊕</span><span class="tab-label">Scan</span></button>
     <button class="tab" data-tab="settings"><span class="tab-icon">⚙</span><span class="tab-label">Settings</span></button>
   </nav>
-
-  <!-- ── FAB ── -->
   <button class="fab show" id="fab">+</button>
 
   <!-- ── Form overlay ── -->
@@ -360,7 +362,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
   <div class="overlay" id="form-ov">
     <div class="sheet-tap-close" id="sheet-close"></div>
     <div class="sheet">
-      <div class="form-scroll" id="form-scroll">
+      <div class="form-scroll">
         <div class="form-title" id="form-title">New Tasting</div>
         <input type="hidden" id="f-id">
         <div class="field"><label>Wine Name *</label><input type="text" id="f-name" placeholder="e.g. Château Margaux" autocomplete="off"></div>
@@ -413,415 +415,426 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
+import { getDatabase, ref, set, remove, onValue, off, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js';
+
+/* ══ FIREBASE ══ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBgBcv2Ug13sRrts1u9VSHeW12EyNNY6Tg",
+  authDomain: "cave-wine-journal.firebaseapp.com",
+  databaseURL: "https://cave-wine-journal-default-rtdb.firebaseio.com",
+  projectId: "cave-wine-journal",
+  storageBucket: "cave-wine-journal.firebasestorage.app",
+  messagingSenderId: "34557583171",
+  appId: "1:34557583171:web:3cb9565ce56706e04199f6"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+let syncUnsub = null;
+
 /* ══ STATE ══ */
 const S = {
   entries: [], cfg: { apiKey: '' },
+  familyCode: null,
   tab: 'journal',
   jFilter: 'all', jSearch: '',
   tSearch: '', tSort: { col: 'date', dir: 'desc' },
   scanStep: 'idle', scanMode: 'menu', scanImgData: null, scanImgType: null, scanLoc: '', scanRows: [],
-  editId: null, detailId: null, formSource: 'manual',
-  formRating: 0, formImg: null,
+  editId: null, detailId: null, formRating: 0, formImg: null, formSource: 'manual',
 };
 
-/* ══ STORAGE ══ */
-function loadState() {
-  try { S.entries = JSON.parse(localStorage.getItem('cave_v2') || '[]'); } catch { S.entries = []; }
-  try { S.cfg = JSON.parse(localStorage.getItem('cave_cfg') || '{}'); S.cfg.apiKey = S.cfg.apiKey || ''; } catch {}
-  // migrate v1
-  try {
-    const v1 = JSON.parse(localStorage.getItem('cave_v1') || '[]');
-    if (v1.length && !S.entries.length) {
-      S.entries = v1.map(e => ({ ...e, source: 'manual', location: '', price: '', region: '', description: '', image: null }));
-      persist();
-    }
-  } catch {}
+/* ══ SYNC ══ */
+function entriesPath() { return `journals/${S.familyCode}/entries`; }
+
+function startSync() {
+  if (syncUnsub) { off(ref(db, entriesPath())); syncUnsub = null; }
+  setSyncDot('syncing');
+  const r = ref(db, entriesPath());
+  syncUnsub = onValue(r, snap => {
+    const val = snap.val();
+    S.entries = val ? Object.values(val) : [];
+    S.entries.sort((a,b) => (b.created||0) - (a.created||0));
+    localStorage.setItem('cave_v2', JSON.stringify(S.entries));
+    setSyncDot('online');
+    renderCurrentTab();
+  }, () => setSyncDot('offline'));
 }
-function persist() { localStorage.setItem('cave_v2', JSON.stringify(S.entries)); }
+
+function fbSet(entry) {
+  if (!S.familyCode) return;
+  set(ref(db, `${entriesPath()}/${entry.id}`), entry);
+}
+
+function fbRemove(id) {
+  if (!S.familyCode) return;
+  remove(ref(db, `${entriesPath()}/${id}`));
+}
+
+function setSyncDot(state) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot' + (state === 'offline' ? ' offline' : state === 'syncing' ? ' syncing' : '');
+}
+
+/* ══ SETUP ══ */
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+function activateCode(code) {
+  S.familyCode = code.toUpperCase().trim();
+  localStorage.setItem('cave_code', S.familyCode);
+  // Migrate existing local entries to Firebase
+  try {
+    const local = JSON.parse(localStorage.getItem('cave_v2') || '[]');
+    local.forEach(e => { if (!e.created) e.created = Date.now(); fbSet(e); });
+  } catch {}
+  document.getElementById('setup-overlay').style.display = 'none';
+  startSync();
+  renderCurrentTab();
+}
+
+function setupEvents() {
+  document.getElementById('setup-create').addEventListener('click', () => activateCode(generateCode()));
+  document.getElementById('setup-join').addEventListener('click', () => {
+    const code = document.getElementById('setup-code-input').value.trim();
+    if (code.length < 4) { alert('Please enter a valid code'); return; }
+    activateCode(code);
+  });
+  document.getElementById('setup-code-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('setup-join').click();
+  });
+}
+
+/* ══ STORAGE ══ */
+function loadCfg() {
+  try { S.cfg = JSON.parse(localStorage.getItem('cave_cfg') || '{}'); S.cfg.apiKey = S.cfg.apiKey||''; } catch {}
+}
 function persistCfg() { localStorage.setItem('cave_cfg', JSON.stringify(S.cfg)); }
 
 /* ══ UTILITIES ══ */
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
 function today() { return new Date().toISOString().slice(0,10); }
-function fmtDate(s) {
-  if (!s) return '';
-  return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
-}
-function stars(n) { return n > 0 ? '★'.repeat(n) + '☆'.repeat(5-n) : ''; }
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function fmtDate(s) { if (!s) return ''; return new Date(s+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }
+function stars(n) { return n > 0 ? '★'.repeat(n)+'☆'.repeat(5-n) : ''; }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
 function isDuplicate(name, winery) {
-  const n = (name||'').toLowerCase().trim();
-  const w = (winery||'').toLowerCase().trim();
+  const n=(name||'').toLowerCase().trim(), w=(winery||'').toLowerCase().trim();
   if (!n) return false;
   return S.entries.some(e => {
-    const en = (e.name||'').toLowerCase().trim();
-    const ew = (e.winery||'').toLowerCase().trim();
-    if (en !== n) return false;
-    if (w && ew) return ew === w;
+    const en=(e.name||'').toLowerCase().trim(), ew=(e.winery||'').toLowerCase().trim();
+    if (en!==n) return false;
+    if (w&&ew) return ew===w;
     return true;
   });
 }
+
 async function compressImage(file) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = new Image();
       img.onload = () => {
-        const MAX = 700, c = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w=MAX; } else { w=Math.round(w*MAX/h); h=MAX; } }
-        c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(c.toDataURL('image/jpeg', 0.72));
+        const MAX=700, c=document.createElement('canvas');
+        let w=img.width, h=img.height;
+        if (w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+        c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',.7));
       };
-      img.src = ev.target.result;
+      img.src=ev.target.result;
     };
     reader.readAsDataURL(file);
   });
 }
+
 async function detectLocation() {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) { resolve(''); return; }
+  return new Promise(resolve => {
+    if (!navigator.geolocation){resolve('');return;}
     navigator.geolocation.getCurrentPosition(async pos => {
-      const { latitude: lat, longitude: lon } = pos.coords;
+      const {latitude:lat,longitude:lon}=pos.coords;
       try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, { headers: {'Accept-Language':'en'} });
-        const d = await r.json(); const a = d.address;
-        const parts = [a.restaurant||a.bar||a.cafe||a.amenity, a.road, a.city||a.town||a.village, a.state].filter(Boolean);
-        resolve(parts.slice(0,3).join(', ') || d.display_name.split(',').slice(0,3).join(',').trim());
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,{headers:{'Accept-Language':'en'}});
+        const d=await r.json(),a=d.address;
+        const parts=[a.restaurant||a.bar||a.cafe||a.amenity,a.road,a.city||a.town||a.village,a.state].filter(Boolean);
+        resolve(parts.slice(0,3).join(', ')||d.display_name.split(',').slice(0,3).join(',').trim());
       } catch { resolve(`${lat.toFixed(4)}, ${lon.toFixed(4)}`); }
-    }, () => resolve(''), { timeout: 8000 });
+    }, ()=>resolve(''), {timeout:8000});
   });
 }
 
 /* ══ NAVIGATION ══ */
+function renderCurrentTab() {
+  switch(S.tab) {
+    case 'journal': renderJournal(); break;
+    case 'table':   renderTable();   break;
+    case 'scan':    renderScan();    break;
+    case 'settings':renderSettings();break;
+  }
+}
+
 function goTab(tab) {
-  S.tab = tab;
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  S.tab=tab;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('v-'+tab).classList.add('active');
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  document.getElementById('fab').classList.toggle('show', tab === 'journal');
-  if (tab === 'table') renderTable();
-  else if (tab === 'scan') renderScan();
-  else if (tab === 'settings') renderSettings();
-  else renderJournal();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.getElementById('fab').classList.toggle('show', tab==='journal');
+  renderCurrentTab();
 }
 
 /* ══ RENDER: JOURNAL ══ */
 function renderJournal() {
-  const q = S.jSearch.toLowerCase();
-  let list = S.entries.filter(e => {
-    if (S.jFilter === 'manual' && e.source !== 'manual') return false;
-    if (S.jFilter === 'menu' && e.source !== 'menu') return false;
-    if (!q) return true;
-    return [e.name, e.winery, e.region, e.notes, e.description, e.location].some(f => (f||'').toLowerCase().includes(q));
+  const q=S.jSearch.toLowerCase();
+  let list=S.entries.filter(e=>{
+    if(S.jFilter==='manual'&&e.source!=='manual')return false;
+    if(S.jFilter==='menu'&&e.source!=='menu')return false;
+    if(!q)return true;
+    return [e.name,e.winery,e.region,e.notes,e.description,e.location].some(f=>(f||'').toLowerCase().includes(q));
   });
-  document.getElementById('j-count').textContent = list.length ? (list.length === 1 ? '1 wine' : `${list.length} wines`) : '';
-  const el = document.getElementById('j-list');
-  if (!list.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-glyph">🍷</div>
-      <div class="empty-title">${q ? 'No results' : S.jFilter === 'menu' ? 'No menu imports yet' : 'Begin your cellar'}</div>
-      <div class="empty-body">${q ? `Nothing matches "${esc(q)}"` : S.jFilter === 'menu' ? 'Use Scan to import wines from a menu.' : 'Tap + to record your first tasting.'}</div>
+  document.getElementById('j-count').textContent=list.length?(list.length===1?'1 wine':`${list.length} wines`):'';
+  const el=document.getElementById('j-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-glyph">🍷</div>
+      <div class="empty-title">${q?'No results':S.jFilter==='menu'?'No menu imports yet':'Begin your cellar'}</div>
+      <div class="empty-body">${q?`Nothing matches "${esc(q)}"`:S.jFilter==='menu'?'Use Scan to import wines from a menu.':'Tap + to record your first tasting.'}</div>
     </div><div class="scroll-spacer"></div>`;
     return;
   }
-  el.innerHTML = list.map((e,i) => `
+  el.innerHTML=list.map((e,i)=>`
     <div class="card" style="animation-delay:${Math.min(i,8)*.04}s" data-id="${e.id}">
-      ${e.image ? `<img class="card-img" src="${e.image}" loading="lazy">` : ''}
+      ${e.image?`<img class="card-img" src="${e.image}" loading="lazy">`:''}
       <div class="card-body">
         <div class="card-top">
           <div class="card-name">${esc(e.name)}</div>
-          ${e.rating ? `<div class="card-stars">${stars(e.rating)}</div>` : ''}
+          ${e.rating?`<div class="card-stars">${stars(e.rating)}</div>`:''}
         </div>
-        ${(e.winery||e.vintage||e.region) ? `<div class="card-meta">${[e.winery,e.vintage,e.region].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
-        ${e.price ? `<div class="card-meta" style="color:var(--gold-dim)">${esc(e.price)}</div>` : ''}
-        ${(e.notes||e.description) ? `<div class="card-notes">${esc(e.notes||e.description)}</div>` : ''}
+        ${(e.winery||e.vintage||e.region)?`<div class="card-meta">${[e.winery,e.vintage,e.region].filter(Boolean).map(esc).join(' · ')}</div>`:''}
+        ${e.price?`<div class="card-meta" style="color:var(--gold-dim)">${esc(e.price)}</div>`:''}
+        ${(e.notes||e.description)?`<div class="card-notes">${esc(e.notes||e.description)}</div>`:''}
         <div class="card-footer">
           <div class="card-date">${fmtDate(e.date)}</div>
-          ${e.source === 'menu' ? '<span class="card-tag menu">Menu</span>' : ''}
+          ${e.source==='menu'?'<span class="card-tag menu">Menu</span>':''}
         </div>
-        ${e.location ? `<div class="card-loc"><svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M5 1C3.07 1 1.5 2.57 1.5 4.5C1.5 7.25 5 11 5 11C5 11 8.5 7.25 8.5 4.5C8.5 2.57 6.93 1 5 1Z" stroke="#C5A048" stroke-width="1.2" fill="none"/><circle cx="5" cy="4.5" r="1.2" fill="#C5A048"/></svg>${esc(e.location)}</div>` : ''}
+        ${e.location?`<div class="card-loc"><svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M5 1C3.07 1 1.5 2.57 1.5 4.5C1.5 7.25 5 11 5 11C5 11 8.5 7.25 8.5 4.5C8.5 2.57 6.93 1 5 1Z" stroke="#C5A048" stroke-width="1.2" fill="none"/><circle cx="5" cy="4.5" r="1.2" fill="#C5A048"/></svg>${esc(e.location)}</div>`:''}
       </div>
-    </div>`).join('') + '<div class="scroll-spacer"></div>';
-  el.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => openDetail(c.dataset.id)));
+    </div>`).join('')+'<div class="scroll-spacer"></div>';
+  el.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openDetail(c.dataset.id)));
 }
 
 /* ══ RENDER: TABLE ══ */
-const T_COLS = [
-  { id:'_thumb', label:'', nosort:true },
-  { id:'name', label:'Wine' },
-  { id:'winery', label:'Winery' },
-  { id:'vintage', label:'Vintage' },
-  { id:'region', label:'Region' },
-  { id:'price', label:'Price' },
-  { id:'rating', label:'Rating' },
-  { id:'notes', label:'Notes' },
-  { id:'date', label:'Date' },
-  { id:'location', label:'Location' },
-  { id:'source', label:'Source' },
+const T_COLS=[
+  {id:'_thumb',label:'',nosort:true},{id:'name',label:'Wine'},{id:'winery',label:'Winery'},
+  {id:'vintage',label:'Vintage'},{id:'region',label:'Region'},{id:'price',label:'Price'},
+  {id:'rating',label:'Rating'},{id:'notes',label:'Notes'},{id:'date',label:'Date'},
+  {id:'location',label:'Location'},{id:'source',label:'Source'},
 ];
 function renderTable() {
-  const q = S.tSearch.toLowerCase();
-  let list = S.entries.filter(e => !q || [e.name,e.winery,e.region,e.location,e.notes,e.description].some(f=>(f||'').toLowerCase().includes(q)));
-  const { col, dir } = S.tSort;
-  list.sort((a,b) => {
-    let av = a[col]||'', bv = b[col]||'';
-    if (col === 'rating') { av = +av||0; bv = +bv||0; }
-    else if (col === 'price') {
-      av = parseFloat(String(av).replace(/[^0-9.]/g,''))||0;
-      bv = parseFloat(String(bv).replace(/[^0-9.]/g,''))||0;
-    }
-    return dir === 'asc' ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+  const q=S.tSearch.toLowerCase();
+  let list=S.entries.filter(e=>!q||[e.name,e.winery,e.region,e.location,e.notes,e.description].some(f=>(f||'').toLowerCase().includes(q)));
+  const {col,dir}=S.tSort;
+  list.sort((a,b)=>{
+    let av=a[col]||'',bv=b[col]||'';
+    if(col==='rating'){av=+av||0;bv=+bv||0;}
+    else if(col==='price'){av=parseFloat(String(av).replace(/[^0-9.]/g,''))||0;bv=parseFloat(String(bv).replace(/[^0-9.]/g,''))||0;}
+    return dir==='asc'?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
   });
-  const outer = document.getElementById('t-outer');
-  if (!list.length) {
-    outer.innerHTML = `<div class="tbl-empty">No wines found${q ? ` matching "${esc(q)}"` : ''}</div>`;
-    return;
-  }
-  const arrow = d => d === 'asc' ? '▲' : '▼';
-  outer.innerHTML = `<table class="wine-table"><thead><tr>${T_COLS.map(c=>`
+  const outer=document.getElementById('t-outer');
+  if(!list.length){outer.innerHTML=`<div class="tbl-empty">No wines found${q?` matching "${esc(q)}"`:''}</div>`;return;}
+  const arrow=d=>d==='asc'?'▲':'▼';
+  outer.innerHTML=`<table class="wine-table"><thead><tr>${T_COLS.map(c=>`
     <th class="${S.tSort.col===c.id?'sorted':''}" ${c.nosort?'':'data-col="'+c.id+'"'}>${esc(c.label)}${S.tSort.col===c.id?`<span class="sort-arrow">${arrow(dir)}</span>`:''}</th>`).join('')}</tr></thead>
   <tbody>${list.map(e=>{
-    const snippet = (e.notes||e.description||'').slice(0,120) + ((e.notes||e.description||'').length>120?'…':'');
-    const thumb = e.image
-      ? `<img class="tbl-thumb" src="${e.image}" loading="lazy">`
-      : `<div class="tbl-thumb-empty">🍷</div>`;
+    const snippet=(e.notes||e.description||'').slice(0,120)+((e.notes||e.description||'').length>120?'…':'');
+    const thumb=e.image?`<img class="tbl-thumb" src="${e.image}" loading="lazy">`:`<div class="tbl-thumb-empty">🍷</div>`;
     return `<tr data-id="${e.id}">
       <td class="col-thumb">${thumb}</td>
       <td class="col-name">${esc(e.name)}</td>
-      <td>${esc(e.winery)}</td>
-      <td>${esc(e.vintage)}</td>
-      <td>${esc(e.region)}</td>
-      <td>${esc(e.price)}</td>
+      <td>${esc(e.winery)}</td><td>${esc(e.vintage)}</td><td>${esc(e.region)}</td><td>${esc(e.price)}</td>
       <td class="col-rating">${e.rating?'★'.repeat(e.rating):''}</td>
       <td class="col-notes">${esc(snippet)}</td>
-      <td>${fmtDate(e.date)}</td>
-      <td>${esc(e.location)}</td>
+      <td>${fmtDate(e.date)}</td><td>${esc(e.location)}</td>
       <td class="col-source">${e.source==='menu'?'<span class="menu-tag">Menu</span>':'Manual'}</td>
     </tr>`;}).join('')}</tbody></table>`;
-  outer.querySelectorAll('th[data-col]').forEach(th => th.addEventListener('click', () => {
-    if (th.dataset.col === '_thumb') return;
-    const c = th.dataset.col;
-    S.tSort = S.tSort.col === c ? { col: c, dir: S.tSort.dir==='asc'?'desc':'asc' } : { col: c, dir: 'asc' };
+  outer.querySelectorAll('th[data-col]').forEach(th=>th.addEventListener('click',()=>{
+    if(th.dataset.col==='_thumb')return;
+    const c=th.dataset.col;
+    S.tSort=S.tSort.col===c?{col:c,dir:S.tSort.dir==='asc'?'desc':'asc'}:{col:c,dir:'asc'};
     renderTable();
   }));
-  outer.querySelectorAll('tr[data-id]').forEach(tr => tr.addEventListener('click', () => openDetail(tr.dataset.id)));
+  outer.querySelectorAll('tr[data-id]').forEach(tr=>tr.addEventListener('click',()=>openDetail(tr.dataset.id)));
 }
 
 /* ══ RENDER: SCAN ══ */
 function renderScan() {
-  const body = document.getElementById('scan-body');
-  if (!S.cfg.apiKey) {
-    body.innerHTML = `<div class="scan-card">
+  const body=document.getElementById('scan-body');
+  if(!S.cfg.apiKey){
+    body.innerHTML=`<div class="scan-card">
       <div class="scan-section-title">Setup Required</div>
       <p>Add your Google Gemini API key in Settings to enable scanning. Get one free at <strong style="color:var(--gold)">aistudio.google.com</strong> → Get API Key.</p>
       <button class="btn btn-gold btn-full" id="go-settings">Go to Settings</button>
     </div>`;
-    document.getElementById('go-settings').addEventListener('click', () => goTab('settings'));
+    document.getElementById('go-settings').addEventListener('click',()=>goTab('settings'));
     return;
   }
-
-  if (S.scanStep === 'idle') {
-    const isMenu = S.scanMode === 'menu';
-    body.innerHTML = `
-    <div class="scan-card">
+  if(S.scanStep==='idle'){
+    const isMenu=S.scanMode==='menu';
+    body.innerHTML=`<div class="scan-card">
       <div class="mode-toggle">
         <button class="mode-btn ${isMenu?'active':''}" data-mode="menu">📋 Wine Menu</button>
         <button class="mode-btn ${!isMenu?'active':''}" data-mode="bottle">🍾 Wine Bottle</button>
       </div>
-      ${isMenu ? `
+      ${isMenu?`
         <div class="scan-section-title">Location</div>
         <p>Where are you? This location will be saved with every wine from this scan.</p>
         <div class="loc-row">
           <input class="loc-input" id="scan-loc-input" placeholder="Restaurant, bar, location…" value="${esc(S.scanLoc)}">
           <button class="btn-icon" id="scan-loc-btn">📍</button>
-        </div>
-      ` : `
+        </div>`:`
         <div class="scan-section-title">Scan a Bottle</div>
-        <p>Take a clear photo of the wine label. Claude will extract the name, winery, vintage, region, and description — then open the form so you can review and add your notes.</p>
-        <p style="margin-bottom:0;font-size:11px;color:rgba(239,228,210,.35)">Duplicates (same name + winery) will be caught before saving.</p>
-      `}
+        <p>Take a clear photo of the wine label. AI will extract the details then open the form for you to review and add your notes.</p>
+        <p style="margin-bottom:0;font-size:11px;color:rgba(239,228,210,.35)">Duplicates (same name + winery) will be caught before saving.</p>`}
     </div>
     <div class="scan-card">
       <input type="file" id="scan-file" accept="image/*" style="display:none">
-      <button class="btn btn-primary btn-full" id="scan-pick">📷 ${isMenu ? 'Photo of Wine Menu' : 'Photo of Wine Bottle'}</button>
+      <button class="btn btn-primary btn-full" id="scan-pick">📷 ${isMenu?'Photo of Wine Menu':'Photo of Wine Bottle'}</button>
     </div>`;
-
-    document.querySelectorAll('.mode-btn').forEach(b => b.addEventListener('click', () => {
-      S.scanMode = b.dataset.mode; renderScan();
-    }));
-    if (isMenu) {
-      document.getElementById('scan-loc-input').addEventListener('input', e => { S.scanLoc = e.target.value; });
-      document.getElementById('scan-loc-btn').addEventListener('click', async () => {
-        const btn = document.getElementById('scan-loc-btn');
-        btn.textContent = '…'; btn.disabled = true;
-        S.scanLoc = await detectLocation();
-        const inp = document.getElementById('scan-loc-input');
-        if (inp) inp.value = S.scanLoc;
-        btn.textContent = '📍'; btn.disabled = false;
+    document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{S.scanMode=b.dataset.mode;renderScan();}));
+    if(isMenu){
+      document.getElementById('scan-loc-input').addEventListener('input',e=>{S.scanLoc=e.target.value;});
+      document.getElementById('scan-loc-btn').addEventListener('click',async()=>{
+        const btn=document.getElementById('scan-loc-btn');
+        btn.textContent='…';btn.disabled=true;
+        S.scanLoc=await detectLocation();
+        const inp=document.getElementById('scan-loc-input');
+        if(inp)inp.value=S.scanLoc;
+        btn.textContent='📍';btn.disabled=false;
       });
     }
-    document.getElementById('scan-pick').addEventListener('click', () => document.getElementById('scan-file').click());
-    document.getElementById('scan-file').addEventListener('change', async e => {
-      const file = e.target.files[0]; if (!file) return;
-      S.scanStep = 'processing';
-      const reader = new FileReader();
-      reader.onload = async ev => {
-        S.scanImgType = file.type || 'image/jpeg';
-        S.scanImgData = ev.target.result.split(',')[1];
+    document.getElementById('scan-pick').addEventListener('click',()=>document.getElementById('scan-file').click());
+    document.getElementById('scan-file').addEventListener('change',async e=>{
+      const file=e.target.files[0];if(!file)return;
+      S.scanStep='processing';
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        S.scanImgType=file.type||'image/jpeg';
+        S.scanImgData=ev.target.result.split(',')[1];
         renderScan();
-        try {
-          if (S.scanMode === 'menu') {
-            const rows = await analyzeMenu(S.scanImgData, S.scanImgType);
-            S.scanRows = rows.map((r,i) => {
-              const name = r.name||r.wine_name||'';
-              const winery = r.winery||r.producer||'';
-              return { ...r, _name:name, _winery:winery, _dup: isDuplicate(name, winery) };
-            });
-            S.scanStep = 'review';
-          } else {
-            const wine = await analyzeBottle(S.scanImgData, S.scanImgType);
-            S.scanStep = 'idle';
-            const name = wine.name||'';
-            const winery = wine.winery||'';
-            if (isDuplicate(name, winery)) {
-              const existing = S.entries.find(e => (e.name||'').toLowerCase().trim() === name.toLowerCase().trim());
-              if (!confirm(`"${name}" by ${winery||'unknown winery'} is already in your journal. Open the existing entry to edit it instead? (Cancel to add anyway)`)) {
-                openForm(null, { ...wine, source:'manual', location: S.scanLoc });
-              } else if (existing) {
-                openDetail(existing.id);
-              }
-            } else {
-              openForm(null, { ...wine, source:'manual', location: S.scanLoc });
+        try{
+          if(S.scanMode==='menu'){
+            const rows=await analyzeMenu(S.scanImgData,S.scanImgType);
+            S.scanRows=rows.map(r=>{const name=r.name||r.wine_name||'',winery=r.winery||r.producer||'';return{...r,_name:name,_winery:winery,_dup:isDuplicate(name,winery)};});
+            S.scanStep='review';
+          }else{
+            const wine=await analyzeBottle(S.scanImgData,S.scanImgType);
+            S.scanStep='idle';
+            const name=wine.name||'',winery=wine.winery||'';
+            if(isDuplicate(name,winery)){
+              const existing=S.entries.find(e=>(e.name||'').toLowerCase().trim()===name.toLowerCase().trim());
+              if(!confirm(`"${name}" by ${winery||'unknown winery'} is already in your journal. Open the existing entry? (Cancel to add anyway)`)){
+                openForm(null,{...wine,source:'manual',location:S.scanLoc});
+              }else if(existing){openDetail(existing.id);}
+            }else{
+              openForm(null,{...wine,source:'manual',location:S.scanLoc});
             }
           }
           renderScan();
-        } catch(err) {
-          S.scanStep = 'idle';
-          alert('Scan failed: ' + err.message);
-          renderScan();
-        }
+        }catch(err){S.scanStep='idle';alert('Scan failed: '+err.message);renderScan();}
       };
       reader.readAsDataURL(file);
     });
     return;
   }
-
-  if (S.scanStep === 'processing') {
-    const label = S.scanMode === 'menu' ? 'Extracting wines from menu…' : 'Reading bottle label…';
-    body.innerHTML = `<div class="scan-card" style="text-align:center;padding:40px 20px">
-      <div class="scan-status"><span class="spinner"></span> ${label}</div>
+  if(S.scanStep==='processing'){
+    body.innerHTML=`<div class="scan-card" style="text-align:center;padding:40px 20px">
+      <div class="scan-status"><span class="spinner"></span>${S.scanMode==='menu'?'Extracting wines from menu…':'Reading bottle label…'}</div>
       <p style="margin-top:16px;margin-bottom:0;font-size:12px">Usually takes 5–15 seconds</p>
-    </div>`;
-    return;
+    </div>`;return;
   }
-
-  if (S.scanStep === 'review') {
-    const dupCount = S.scanRows.filter(r=>r._dup).length;
-    const newCount = S.scanRows.length - dupCount;
-    const locLine = S.scanLoc ? `<p><strong style="color:var(--gold)">Location:</strong> ${esc(S.scanLoc)}</p>` : '';
-    body.innerHTML = `<div class="scan-card">
+  if(S.scanStep==='review'){
+    const dupCount=S.scanRows.filter(r=>r._dup).length,newCount=S.scanRows.length-dupCount;
+    const locLine=S.scanLoc?`<p><strong style="color:var(--gold)">Location:</strong> ${esc(S.scanLoc)}</p>`:'';
+    body.innerHTML=`<div class="scan-card">
       <div class="scan-section-title">${S.scanRows.length} wine${S.scanRows.length!==1?'s':''} found</div>
       ${locLine}
-      <p>Remove unwanted wines then tap Import. <strong style="color:var(--cream)">${newCount} new</strong>${dupCount?` · <span style="color:rgba(220,180,60,.85)">${dupCount} already saved</span>`:''}.</p>
-      <div class="review-table-wrap">
-        <table class="review-table">
-          <thead><tr><th></th><th>Wine</th><th>Winery</th><th>Vintage</th><th>Region</th><th>Price</th><th class="desc">Description</th></tr></thead>
-          <tbody>
-            ${S.scanRows.map((r,i) => `<tr class="${r._dup?'is-dup':''}">
-              <td><button class="del-row-btn" data-i="${i}">×</button></td>
-              <td>${esc(r._name||'')}${r._dup?'<span class="dup-badge">saved</span>':''}</td>
-              <td>${esc(r._winery||'')}</td>
-              <td>${esc(r.vintage||r.year||'')}</td>
-              <td>${esc(r.region||r.appellation||'')}</td>
-              <td>${esc(r.price||'')}</td>
-              <td class="desc">${esc(r.description||r.tasting_notes||r.notes||'')}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
+      <p>Remove unwanted wines then tap Import. <strong style="color:var(--cream)">${newCount} new</strong>${dupCount?` · <span style="color:rgba(220,180,60,.85)">${dupCount} already saved</span>`:''}</p>
+      <div class="review-table-wrap"><table class="review-table">
+        <thead><tr><th></th><th>Wine</th><th>Winery</th><th>Vintage</th><th>Region</th><th>Price</th><th class="desc">Description</th></tr></thead>
+        <tbody>${S.scanRows.map((r,i)=>`<tr class="${r._dup?'is-dup':''}">
+          <td><button class="del-row-btn" data-i="${i}">×</button></td>
+          <td>${esc(r._name||'')}${r._dup?'<span class="dup-badge">saved</span>':''}</td>
+          <td>${esc(r._winery||'')}</td><td>${esc(r.vintage||r.year||'')}</td>
+          <td>${esc(r.region||r.appellation||'')}</td><td>${esc(r.price||'')}</td>
+          <td class="desc">${esc(r.description||r.tasting_notes||r.notes||'')}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
       <div class="import-bar">
         <button class="btn btn-ghost" id="scan-cancel">Cancel</button>
         <button class="btn btn-primary" id="scan-import" style="flex:1">Import ${newCount} New Wine${newCount!==1?'s':''}</button>
       </div>
     </div>`;
-    document.querySelectorAll('.del-row-btn').forEach(btn => btn.addEventListener('click', () => {
-      S.scanRows.splice(+btn.dataset.i, 1);
-      renderScan();
-    }));
-    document.getElementById('scan-cancel').addEventListener('click', () => { S.scanStep='idle'; S.scanRows=[]; renderScan(); });
-    document.getElementById('scan-import').addEventListener('click', importScannedWines);
+    document.querySelectorAll('.del-row-btn').forEach(btn=>btn.addEventListener('click',()=>{S.scanRows.splice(+btn.dataset.i,1);renderScan();}));
+    document.getElementById('scan-cancel').addEventListener('click',()=>{S.scanStep='idle';S.scanRows=[];renderScan();});
+    document.getElementById('scan-import').addEventListener('click',importScannedWines);
   }
 }
 
-function importScannedWines() {
-  const loc = S.scanLoc, now = today();
-  const toImport = S.scanRows.filter(r => !isDuplicate(r._name||r.name||'', r._winery||r.winery||''));
-  const skipped = S.scanRows.length - toImport.length;
-  const newEntries = toImport.map(r => ({
-    id: uid(),
-    name: r._name || r.name || r.wine_name || 'Unknown Wine',
-    winery: r._winery || r.winery || r.producer || '',
-    vintage: r.vintage || r.year || '',
-    region: r.region || r.appellation || '',
-    price: r.price || '',
-    rating: 0, notes: '',
-    description: r.description || r.tasting_notes || r.notes || '',
-    date: now, location: loc, source: 'menu', image: null,
-  }));
-  S.entries = [...newEntries, ...S.entries];
-  persist();
-  S.scanStep = 'idle'; S.scanRows = []; S.scanLoc = '';
-  const msg = newEntries.length
-    ? `Imported ${newEntries.length} wine${newEntries.length!==1?'s':''}${skipped?` · Skipped ${skipped} duplicate${skipped!==1?'s':''}`:''}.`
-    : `All ${skipped} wine${skipped!==1?'s were':' was'} already in your journal — nothing imported.`;
+function importScannedWines(){
+  const loc=S.scanLoc,now=today();
+  const toImport=S.scanRows.filter(r=>!isDuplicate(r._name||r.name||'',r._winery||r.winery||''));
+  const skipped=S.scanRows.length-toImport.length;
+  toImport.forEach(r=>{
+    const entry={
+      id:uid(),created:Date.now(),
+      name:r._name||r.name||r.wine_name||'Unknown Wine',
+      winery:r._winery||r.winery||r.producer||'',
+      vintage:r.vintage||r.year||'',region:r.region||r.appellation||'',
+      price:r.price||'',rating:0,notes:'',
+      description:r.description||r.tasting_notes||r.notes||'',
+      date:now,location:loc,source:'menu',image:null,
+    };
+    fbSet(entry);
+  });
+  S.scanStep='idle';S.scanRows=[];S.scanLoc='';
+  const msg=toImport.length
+    ?`Imported ${toImport.length} wine${toImport.length!==1?'s':''}${skipped?` · Skipped ${skipped} duplicate${skipped!==1?'s':''}`:''}.`
+    :`All wines were already in your journal — nothing imported.`;
   alert(msg);
   goTab('journal');
-  S.jFilter = 'menu';
-  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.filter==='menu'));
-  renderJournal();
+  S.jFilter='menu';
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.dataset.filter==='menu'));
 }
 
-/* ══ GOOGLE GEMINI API ══ */
-async function geminiVision(base64, mediaType, prompt, large) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${S.cfg.apiKey}`;
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [
-        { inline_data: { mime_type: mediaType, data: base64 } },
-        { text: prompt }
-      ]}],
-      generationConfig: { response_mime_type: 'application/json', max_output_tokens: large ? 4096 : 1024 }
-    })
-  });
-  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || `API error ${resp.status}`); }
-  const data = await resp.json();
-  const text = (data.candidates[0].content.parts[0].text || '').trim().replace(/^```json?\n?/,'').replace(/\n?```$/,'');
+/* ══ GEMINI API ══ */
+async function geminiVision(base64,mediaType,prompt,large){
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${S.cfg.apiKey}`;
+  const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mediaType,data:base64}},{text:prompt}]}],
+      generationConfig:{response_mime_type:'application/json',max_output_tokens:large?4096:1024}})});
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||`API error ${resp.status}`);}
+  const data=await resp.json();
+  const text=(data.candidates[0].content.parts[0].text||'').trim().replace(/^```json?\n?/,'').replace(/\n?```$/,'');
   return JSON.parse(text);
 }
-async function analyzeMenu(base64, mediaType) {
-  return geminiVision(base64, mediaType,
-    'Extract every wine from this wine menu. Return ONLY a valid JSON array, no markdown. Each object: {"name":"","winery":"","vintage":"","region":"","price":"","description":""}. Use empty string for missing fields. Include every wine listed.',
-    true);
-}
-
-/* ══ BOTTLE API ══ */
-async function analyzeBottle(base64, mediaType) {
-  return geminiVision(base64, mediaType,
-    'Read this wine bottle label carefully. Return ONLY a valid JSON object, no markdown. Fields: {"name":"wine name/cuvée","winery":"producer name","vintage":"year as string","region":"appellation or region","description":"grape varieties, alcohol %, and any tasting notes or style info from the label"}. Use empty string for missing fields.',
-    false);
-}
+async function analyzeMenu(base64,mediaType){return geminiVision(base64,mediaType,'Extract every wine from this wine menu. Return ONLY a valid JSON array, no markdown. Each object: {"name":"","winery":"","vintage":"","region":"","price":"","description":""}. Use empty string for missing fields. Include every wine listed.',true);}
+async function analyzeBottle(base64,mediaType){return geminiVision(base64,mediaType,'Read this wine bottle label carefully. Return ONLY a valid JSON object, no markdown. Fields: {"name":"wine name/cuvée","winery":"producer name","vintage":"year as string","region":"appellation or region","description":"grape varieties, alcohol %, and any tasting notes or style info from the label"}. Use empty string for missing fields.',false);}
 
 /* ══ RENDER: SETTINGS ══ */
-function renderSettings() {
-  const body = document.getElementById('settings-body');
-  body.innerHTML = `
+function renderSettings(){
+  const body=document.getElementById('settings-body');
+  body.innerHTML=`
+    <div class="settings-section">
+      <h3>Shared Journal Code</h3>
+      <p>Share this code with your wife. When she opens Cave for the first time, she taps "Join a Journal" and enters this code — then you both see the same wines in real time.</p>
+      <div class="code-display">${S.familyCode||'—'}</div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-gold" style="flex:1" id="share-code-btn">Share Code</button>
+        <button class="btn btn-ghost btn-sm" id="leave-journal-btn">Change</button>
+      </div>
+    </div>
     <div class="settings-section">
       <h3>Google Gemini API Key</h3>
-      <p>Your key is stored only on this device and never sent anywhere except Google's API for menu and bottle scanning.</p>
-      <p>Find it at <strong style="color:var(--gold)">aistudio.google.com</strong> → Get API Key. Keys start with <code style="color:var(--gold)">AIza</code></p>
+      <p>Required for scanning menus and bottle labels. Get a free key at <strong style="color:var(--gold)">aistudio.google.com</strong> → Get API Key.</p>
       <div class="key-row">
         <input class="key-input" id="api-key-input" type="password" placeholder="AIza…" value="${esc(S.cfg.apiKey)}" autocomplete="off" spellcheck="false">
         <button class="btn-icon" id="key-show-btn">👁</button>
@@ -831,157 +844,157 @@ function renderSettings() {
     </div>
     <div class="settings-section">
       <h3>About</h3>
-      <p>Cave — Wine Journal<br>Entries stored locally on your device via localStorage.</p>
-      <p style="margin-bottom:0"><strong style="color:var(--cream)">${S.entries.length}</strong> wines in your cellar</p>
+      <p>Cave — Wine Journal<br>Synced in real time via Firebase.<br><strong style="color:var(--cream)">${S.entries.length}</strong> wines in your shared cellar.</p>
     </div>`;
-  const inp = document.getElementById('api-key-input');
-  document.getElementById('key-show-btn').addEventListener('click', () => { inp.type = inp.type === 'password' ? 'text' : 'password'; });
-  document.getElementById('key-save-btn').addEventListener('click', () => {
-    S.cfg.apiKey = inp.value.trim(); persistCfg();
-    const badge = document.getElementById('saved-badge');
-    badge.classList.add('on'); setTimeout(() => badge.classList.remove('on'), 2000);
+
+  document.getElementById('share-code-btn').addEventListener('click',()=>{
+    const url=window.location.href, text=`Join my Cave wine journal — use code: ${S.familyCode}`;
+    if(navigator.share){navigator.share({title:'Cave Wine Journal',text,url});}
+    else{navigator.clipboard?.writeText(`${text}\n${url}`).then(()=>alert('Copied to clipboard!'));}
+  });
+  document.getElementById('leave-journal-btn').addEventListener('click',()=>{
+    if(!confirm('This will disconnect from the current shared journal on this device. Your wines stay in the cloud. Continue?'))return;
+    S.familyCode=null;localStorage.removeItem('cave_code');
+    if(syncUnsub){off(ref(db,entriesPath()));syncUnsub=null;}
+    S.entries=[];
+    document.getElementById('setup-overlay').style.display='flex';
+  });
+  const inp=document.getElementById('api-key-input');
+  document.getElementById('key-show-btn').addEventListener('click',()=>{inp.type=inp.type==='password'?'text':'password';});
+  document.getElementById('key-save-btn').addEventListener('click',()=>{
+    S.cfg.apiKey=inp.value.trim();persistCfg();
+    const badge=document.getElementById('saved-badge');badge.classList.add('on');setTimeout(()=>badge.classList.remove('on'),2000);
   });
 }
 
 /* ══ RENDER: DETAIL ══ */
-function openDetail(id) {
-  S.detailId = id;
-  const e = S.entries.find(x => x.id === id); if (!e) return;
-  const cells = [
-    e.winery   ? `<div class="d-cell"><div class="d-cell-lbl">Winery</div><div class="d-cell-val">${esc(e.winery)}</div></div>` : '',
-    e.vintage  ? `<div class="d-cell"><div class="d-cell-lbl">Vintage</div><div class="d-cell-val">${esc(e.vintage)}</div></div>` : '',
-    e.region   ? `<div class="d-cell"><div class="d-cell-lbl">Region</div><div class="d-cell-val">${esc(e.region)}</div></div>` : '',
-    e.price    ? `<div class="d-cell"><div class="d-cell-lbl">Price</div><div class="d-cell-val">${esc(e.price)}</div></div>` : '',
-    e.date     ? `<div class="d-cell"><div class="d-cell-lbl">Date</div><div class="d-cell-val">${fmtDate(e.date)}</div></div>` : '',
-    e.location ? `<div class="d-cell"><div class="d-cell-lbl">Location</div><div class="d-cell-val">${esc(e.location)}</div></div>` : '',
+function openDetail(id){
+  S.detailId=id;
+  const e=S.entries.find(x=>x.id===id);if(!e)return;
+  const cells=[
+    e.winery?`<div class="d-cell"><div class="d-cell-lbl">Winery</div><div class="d-cell-val">${esc(e.winery)}</div></div>`:'',
+    e.vintage?`<div class="d-cell"><div class="d-cell-lbl">Vintage</div><div class="d-cell-val">${esc(e.vintage)}</div></div>`:'',
+    e.region?`<div class="d-cell"><div class="d-cell-lbl">Region</div><div class="d-cell-val">${esc(e.region)}</div></div>`:'',
+    e.price?`<div class="d-cell"><div class="d-cell-lbl">Price</div><div class="d-cell-val">${esc(e.price)}</div></div>`:'',
+    e.date?`<div class="d-cell"><div class="d-cell-lbl">Date</div><div class="d-cell-val">${fmtDate(e.date)}</div></div>`:'',
+    e.location?`<div class="d-cell"><div class="d-cell-lbl">Location</div><div class="d-cell-val">${esc(e.location)}</div></div>`:'',
   ].filter(Boolean);
-  document.getElementById('detail-body').innerHTML = `
-    ${e.image ? `<img class="detail-hero" src="${e.image}">` : ''}
+  document.getElementById('detail-body').innerHTML=`
+    ${e.image?`<img class="detail-hero" src="${e.image}">`:''}
     <div class="detail-inner">
       <div class="d-wine">${esc(e.name)}</div>
-      ${e.rating ? `<div class="d-stars">${'★'.repeat(e.rating)}${'☆'.repeat(5-e.rating)}</div>` : ''}
-      ${cells.length ? `<div class="d-grid">${cells.join('')}</div>` : ''}
-      ${(e.notes||e.description) ? `<div class="d-rule"></div><div class="d-notes-lbl">${e.notes?'Tasting Notes':'Description'}</div><div class="d-notes">${esc(e.notes||e.description)}</div>` : ''}
-      ${(e.notes && e.description) ? `<div class="d-rule"></div><div class="d-notes-lbl">Menu Description</div><div class="d-notes">${esc(e.description)}</div>` : ''}
+      ${e.rating?`<div class="d-stars">${'★'.repeat(e.rating)}${'☆'.repeat(5-e.rating)}</div>`:''}
+      ${cells.length?`<div class="d-grid">${cells.join('')}</div>`:''}
+      ${e.notes?`<div class="d-rule"></div><div class="d-notes-lbl">Tasting Notes</div><div class="d-notes">${esc(e.notes)}</div>`:''}
+      ${e.description?`<div class="d-rule"></div><div class="d-notes-lbl">${e.notes?'Menu Description':'Description'}</div><div class="d-notes">${esc(e.description)}</div>`:''}
     </div>
-    <button class="del-btn" id="detail-del">🗑 Delete Tasting</button>`;
-  document.getElementById('detail-del').addEventListener('click', () => {
-    if (!confirm('Delete this wine?')) return;
-    S.entries = S.entries.filter(x => x.id !== S.detailId);
-    persist(); closeDetail(); renderJournal(); if (S.tab==='table') renderTable();
+    <button class="del-btn" id="detail-del">🗑 Delete Wine</button>`;
+  document.getElementById('detail-del').addEventListener('click',()=>{
+    if(!confirm('Delete this wine from the shared journal?'))return;
+    fbRemove(S.detailId);closeDetail();
   });
   document.getElementById('detail-bd').classList.add('on');
   document.getElementById('detail-ov').classList.add('on');
 }
-function closeDetail() {
+function closeDetail(){
   document.getElementById('detail-ov').classList.remove('on');
   document.getElementById('detail-bd').classList.remove('on');
-  S.detailId = null;
+  S.detailId=null;
 }
 
 /* ══ FORM ══ */
-function openForm(id, prefill) {
-  S.editId = id || null; S.formRating = 0; S.formImg = null; S.formSource = prefill?.source || 'manual';
-  document.getElementById('form-title').textContent = id ? 'Edit Tasting' : (prefill ? 'Review Bottle Scan' : 'New Tasting');
-  document.getElementById('f-img-preview').style.display = 'none';
-  const e = id ? S.entries.find(x => x.id === id) : null;
-  const d = e || prefill || {};
-  document.getElementById('f-id').value = id || '';
-  document.getElementById('f-name').value = d.name || '';
-  document.getElementById('f-winery').value = d.winery || '';
-  document.getElementById('f-vintage').value = d.vintage || '';
-  document.getElementById('f-region').value = d.region || '';
-  document.getElementById('f-price').value = d.price || '';
-  document.getElementById('f-notes').value = d.notes || '';
-  document.getElementById('f-desc').value = d.description || '';
-  document.getElementById('f-date').value = d.date || today();
-  document.getElementById('f-location').value = d.location || '';
+function openForm(id,prefill){
+  S.editId=id||null;S.formRating=0;S.formImg=null;
+  S.formSource=prefill?.source||'manual';
+  document.getElementById('form-title').textContent=id?'Edit Tasting':(prefill?'Review Bottle Scan':'New Tasting');
+  document.getElementById('f-img-preview').style.display='none';
+  const e=id?S.entries.find(x=>x.id===id):null;
+  const d=e||prefill||{};
+  document.getElementById('f-id').value=id||'';
+  document.getElementById('f-name').value=d.name||'';
+  document.getElementById('f-winery').value=d.winery||'';
+  document.getElementById('f-vintage').value=d.vintage||'';
+  document.getElementById('f-region').value=d.region||'';
+  document.getElementById('f-price').value=d.price||'';
+  document.getElementById('f-notes').value=d.notes||'';
+  document.getElementById('f-desc').value=d.description||'';
+  document.getElementById('f-date').value=d.date||today();
+  document.getElementById('f-location').value=d.location||'';
   document.getElementById('f-name').classList.remove('err-border');
-  if (d.image) { const prev = document.getElementById('f-img-preview'); prev.src = d.image; prev.style.display='block'; S.formImg = d.image; }
-  setFormRating(d.rating || 0);
+  if(d.image){const prev=document.getElementById('f-img-preview');prev.src=d.image;prev.style.display='block';S.formImg=d.image;}
+  setFormRating(d.rating||0);
   document.getElementById('form-bd').classList.add('on');
   document.getElementById('form-ov').classList.add('on');
-  setTimeout(() => { const el = document.getElementById('f-name'); if (!el.value) el.focus(); else document.getElementById('f-notes').focus(); }, 380);
+  setTimeout(()=>{const el=document.getElementById('f-name');if(!el.value)el.focus();else document.getElementById('f-notes').focus();},380);
 }
-function closeForm() {
-  document.getElementById('form-ov').classList.remove('on');
-  document.getElementById('form-bd').classList.remove('on');
-}
-function setFormRating(v) {
-  S.formRating = v;
-  document.querySelectorAll('.star-btn').forEach(b => b.classList.toggle('lit', +b.dataset.v <= v));
-}
-function saveForm() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { document.getElementById('f-name').classList.add('err-border'); document.getElementById('f-name').focus(); setTimeout(()=>document.getElementById('f-name').classList.remove('err-border'),1600); return; }
-  const id = document.getElementById('f-id').value;
-  const entry = {
-    id: id || uid(),
-    name, winery: document.getElementById('f-winery').value.trim(),
-    vintage: document.getElementById('f-vintage').value.trim(),
-    region: document.getElementById('f-region').value.trim(),
-    price: document.getElementById('f-price').value.trim(),
-    rating: S.formRating,
-    notes: document.getElementById('f-notes').value.trim(),
-    description: document.getElementById('f-desc').value.trim(),
-    date: document.getElementById('f-date').value,
-    location: document.getElementById('f-location').value.trim(),
-    source: id ? (S.entries.find(e=>e.id===id)?.source||'manual') : S.formSource,
-    image: S.formImg || null,
+function closeForm(){document.getElementById('form-ov').classList.remove('on');document.getElementById('form-bd').classList.remove('on');}
+function setFormRating(v){S.formRating=v;document.querySelectorAll('.star-btn').forEach(b=>b.classList.toggle('lit',+b.dataset.v<=v));}
+function saveForm(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').classList.add('err-border');document.getElementById('f-name').focus();setTimeout(()=>document.getElementById('f-name').classList.remove('err-border'),1600);return;}
+  const id=document.getElementById('f-id').value;
+  const existing=id?S.entries.find(e=>e.id===id):null;
+  const entry={
+    id:id||uid(),created:existing?.created||Date.now(),
+    name,winery:document.getElementById('f-winery').value.trim(),
+    vintage:document.getElementById('f-vintage').value.trim(),
+    region:document.getElementById('f-region').value.trim(),
+    price:document.getElementById('f-price').value.trim(),
+    rating:S.formRating,notes:document.getElementById('f-notes').value.trim(),
+    description:document.getElementById('f-desc').value.trim(),
+    date:document.getElementById('f-date').value,
+    location:document.getElementById('f-location').value.trim(),
+    source:existing?.source||S.formSource,image:S.formImg||null,
   };
-  if (id) { const i = S.entries.findIndex(e=>e.id===id); if (i>=0) S.entries[i]=entry; }
-  else S.entries.unshift(entry);
-  persist(); closeForm(); closeDetail(); renderJournal(); if (S.tab==='table') renderTable();
+  fbSet(entry);
+  closeForm();closeDetail();
 }
 
 /* ══ EVENTS ══ */
-document.getElementById('fab').addEventListener('click', () => openForm());
-document.getElementById('form-cancel').addEventListener('click', closeForm);
-document.getElementById('sheet-close').addEventListener('click', closeForm);
-document.getElementById('form-bd').addEventListener('click', closeForm);
-document.getElementById('form-save').addEventListener('click', saveForm);
-document.getElementById('detail-back').addEventListener('click', closeDetail);
-document.getElementById('detail-bd').addEventListener('click', closeDetail);
-document.getElementById('detail-edit').addEventListener('click', () => { const id = S.detailId; closeDetail(); openForm(id); });
-
-document.getElementById('star-row').addEventListener('click', e => {
-  const b = e.target.closest('.star-btn'); if (b) setFormRating(+b.dataset.v);
-});
-
-document.getElementById('j-search').addEventListener('input', e => { S.jSearch = e.target.value; renderJournal(); });
-document.getElementById('t-search').addEventListener('input', e => { S.tSearch = e.target.value; renderTable(); });
-
-document.querySelectorAll('.filter-row .pill').forEach(p => p.addEventListener('click', () => {
-  S.jFilter = p.dataset.filter;
-  document.querySelectorAll('.pill').forEach(x => x.classList.toggle('active', x===p));
-  renderJournal();
+document.getElementById('fab').addEventListener('click',()=>openForm());
+document.getElementById('form-cancel').addEventListener('click',closeForm);
+document.getElementById('sheet-close').addEventListener('click',closeForm);
+document.getElementById('form-bd').addEventListener('click',closeForm);
+document.getElementById('form-save').addEventListener('click',saveForm);
+document.getElementById('detail-back').addEventListener('click',closeDetail);
+document.getElementById('detail-bd').addEventListener('click',closeDetail);
+document.getElementById('detail-edit').addEventListener('click',()=>{const id=S.detailId;closeDetail();openForm(id);});
+document.getElementById('star-row').addEventListener('click',e=>{const b=e.target.closest('.star-btn');if(b)setFormRating(+b.dataset.v);});
+document.getElementById('j-search').addEventListener('input',e=>{S.jSearch=e.target.value;renderJournal();});
+document.getElementById('t-search').addEventListener('input',e=>{S.tSearch=e.target.value;renderTable();});
+document.querySelectorAll('.filter-row .pill').forEach(p=>p.addEventListener('click',()=>{
+  S.jFilter=p.dataset.filter;document.querySelectorAll('.pill').forEach(x=>x.classList.toggle('active',x===p));renderJournal();
 }));
-
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => goTab(t.dataset.tab)));
-
-document.getElementById('f-img-btn').addEventListener('click', () => document.getElementById('f-img-input').click());
-document.getElementById('f-img-input').addEventListener('change', async e => {
-  const file = e.target.files[0]; if (!file) return;
-  const btn = document.getElementById('f-img-btn'); btn.textContent = 'Compressing…'; btn.disabled = true;
-  S.formImg = await compressImage(file);
-  const prev = document.getElementById('f-img-preview'); prev.src = S.formImg; prev.style.display = 'block';
-  btn.textContent = '📷 Change Photo'; btn.disabled = false;
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>goTab(t.dataset.tab)));
+document.getElementById('f-img-btn').addEventListener('click',()=>document.getElementById('f-img-input').click());
+document.getElementById('f-img-input').addEventListener('change',async e=>{
+  const file=e.target.files[0];if(!file)return;
+  const btn=document.getElementById('f-img-btn');btn.textContent='Compressing…';btn.disabled=true;
+  S.formImg=await compressImage(file);
+  const prev=document.getElementById('f-img-preview');prev.src=S.formImg;prev.style.display='block';
+  btn.textContent='📷 Change Photo';btn.disabled=false;
 });
-
-document.getElementById('loc-detect-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('loc-detect-btn'); btn.textContent = '…'; btn.disabled = true;
-  const loc = await detectLocation();
-  document.getElementById('f-location').value = loc;
-  btn.textContent = '📍 Detect'; btn.disabled = false;
+document.getElementById('loc-detect-btn').addEventListener('click',async()=>{
+  const btn=document.getElementById('loc-detect-btn');btn.textContent='…';btn.disabled=true;
+  document.getElementById('f-location').value=await detectLocation();
+  btn.textContent='📍 Detect';btn.disabled=false;
 });
-
-['f-name','f-winery','f-vintage','f-region','f-price'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); saveForm(); } });
+['f-name','f-winery','f-vintage','f-region','f-price'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveForm();}});
 });
 
 /* ══ INIT ══ */
-loadState();
-renderJournal();
+loadCfg();
+setupEvents();
+S.familyCode=localStorage.getItem('cave_code')||null;
+if(S.familyCode){
+  S.entries=JSON.parse(localStorage.getItem('cave_v2')||'[]');
+  document.getElementById('setup-overlay').style.display='none';
+  startSync();
+  renderJournal();
+} else {
+  document.getElementById('setup-overlay').style.display='flex';
+}
 </script>
 </body>
 </html>

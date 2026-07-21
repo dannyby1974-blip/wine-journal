@@ -132,15 +132,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;o
 .wine-table th.sorted{color:var(--gold)}
 .wine-table th .sort-arrow{margin-left:4px;opacity:.6}
 .wine-table td{
-  padding:11px 14px;border-bottom:1px solid var(--border);
+  padding:10px 14px;border-bottom:1px solid var(--border);
   white-space:nowrap;font-size:13px;vertical-align:middle;color:var(--cream);
   font-family:system-ui,sans-serif;font-weight:300;
 }
+.wine-table td.col-thumb{padding:8px 8px 8px 14px;width:52px}
 .wine-table td.col-name{font-family:Georgia,serif;font-size:14px;color:var(--cream)}
+.wine-table td.col-notes{white-space:normal;max-width:200px;font-size:12px;color:var(--cream2);line-height:1.4}
 .wine-table td.col-rating{color:var(--gold);letter-spacing:1px}
-.wine-table td.col-source .menu{color:var(--gold-dim);font-size:10px;letter-spacing:.1em}
+.wine-table td.col-source .menu-tag{color:var(--gold-dim);font-size:9px;letter-spacing:.1em;
+  border:1px solid rgba(197,160,72,.25);border-radius:4px;padding:1px 6px}
 .wine-table tr{cursor:pointer;transition:background .15s}
 .wine-table tr:active td{background:var(--surface)}
+.tbl-thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;display:block}
+.tbl-thumb-empty{width:44px;height:44px;border-radius:6px;background:var(--surface2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px}
 .tbl-empty{padding:48px 22px;text-align:center;color:var(--cream2);font-family:system-ui,sans-serif;font-size:14px}
 
 /* ── Scan view ── */
@@ -542,12 +548,14 @@ function renderJournal() {
 
 /* ══ RENDER: TABLE ══ */
 const T_COLS = [
+  { id:'_thumb', label:'', nosort:true },
   { id:'name', label:'Wine' },
   { id:'winery', label:'Winery' },
   { id:'vintage', label:'Vintage' },
   { id:'region', label:'Region' },
   { id:'price', label:'Price' },
   { id:'rating', label:'Rating' },
+  { id:'notes', label:'Notes' },
   { id:'date', label:'Date' },
   { id:'location', label:'Location' },
   { id:'source', label:'Source' },
@@ -572,19 +580,27 @@ function renderTable() {
   }
   const arrow = d => d === 'asc' ? '▲' : '▼';
   outer.innerHTML = `<table class="wine-table"><thead><tr>${T_COLS.map(c=>`
-    <th class="${S.tSort.col===c.id?'sorted':''}" data-col="${c.id}">${esc(c.label)}${S.tSort.col===c.id?`<span class="sort-arrow">${arrow(dir)}</span>`:''}</th>`).join('')}</tr></thead>
-  <tbody>${list.map(e=>`<tr data-id="${e.id}">
-    <td class="col-name">${esc(e.name)}</td>
-    <td>${esc(e.winery)}</td>
-    <td>${esc(e.vintage)}</td>
-    <td>${esc(e.region)}</td>
-    <td>${esc(e.price)}</td>
-    <td class="col-rating">${e.rating?'★'.repeat(e.rating):''}</td>
-    <td>${fmtDate(e.date)}</td>
-    <td>${esc(e.location)}</td>
-    <td class="col-source"><span class="${e.source==='menu'?'menu':''}">${e.source==='menu'?'From Menu':'Manual'}</span></td>
-  </tr>`).join('')}</tbody></table>`;
+    <th class="${S.tSort.col===c.id?'sorted':''}" ${c.nosort?'':'data-col="'+c.id+'"'}>${esc(c.label)}${S.tSort.col===c.id?`<span class="sort-arrow">${arrow(dir)}</span>`:''}</th>`).join('')}</tr></thead>
+  <tbody>${list.map(e=>{
+    const snippet = (e.notes||e.description||'').slice(0,120) + ((e.notes||e.description||'').length>120?'…':'');
+    const thumb = e.image
+      ? `<img class="tbl-thumb" src="${e.image}" loading="lazy">`
+      : `<div class="tbl-thumb-empty">🍷</div>`;
+    return `<tr data-id="${e.id}">
+      <td class="col-thumb">${thumb}</td>
+      <td class="col-name">${esc(e.name)}</td>
+      <td>${esc(e.winery)}</td>
+      <td>${esc(e.vintage)}</td>
+      <td>${esc(e.region)}</td>
+      <td>${esc(e.price)}</td>
+      <td class="col-rating">${e.rating?'★'.repeat(e.rating):''}</td>
+      <td class="col-notes">${esc(snippet)}</td>
+      <td>${fmtDate(e.date)}</td>
+      <td>${esc(e.location)}</td>
+      <td class="col-source">${e.source==='menu'?'<span class="menu-tag">Menu</span>':'Manual'}</td>
+    </tr>`;}).join('')}</tbody></table>`;
   outer.querySelectorAll('th[data-col]').forEach(th => th.addEventListener('click', () => {
+    if (th.dataset.col === '_thumb') return;
     const c = th.dataset.col;
     S.tSort = S.tSort.col === c ? { col: c, dir: S.tSort.dir==='asc'?'desc':'asc' } : { col: c, dir: 'asc' };
     renderTable();
